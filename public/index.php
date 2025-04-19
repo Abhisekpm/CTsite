@@ -16,6 +16,8 @@ define('LARAVEL_START', microtime(true));
 |
 */
 
+// When index.php is in /public, __DIR__ is /public
+// We need to go up one level to find /storage
 if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
     require $maintenance;
 }
@@ -31,7 +33,8 @@ if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php'))
 |
 */
 
-require __DIR__.'/vendor/autoload.php';
+// Go up one level from /public to find /vendor
+require __DIR__.'/../vendor/autoload.php';
 
 /*
 |--------------------------------------------------------------------------
@@ -44,7 +47,8 @@ require __DIR__.'/vendor/autoload.php';
 |
 */
 
-$app = require_once __DIR__.'/bootstrap/app.php';
+// Go up one level from /public to find /bootstrap
+$app = require_once __DIR__.'/../bootstrap/app.php';
 
 $kernel = $app->make(Kernel::class);
 
@@ -52,4 +56,4 @@ $response = $kernel->handle(
     $request = Request::capture()
 )->send();
 
-$kernel->terminate($request, $response);
+$kernel->terminate($request, $response); 
