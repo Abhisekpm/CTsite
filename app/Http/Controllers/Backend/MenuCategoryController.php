@@ -13,7 +13,7 @@ class MenuCategoryController extends Controller
 {
     public function index()
     {
-        $menu_cat = MenuCategory::orderBy('orderby','asc')->get();
+        $menu_cat = MenuCategory::orderBy('order','asc')->get();
         return view('admin.menu_category.index', ['menu_cat' => $menu_cat]);
     }
 
@@ -30,12 +30,12 @@ class MenuCategoryController extends Controller
                 $request->validate([
                     'name' => 'required',
                     'slug' => 'required|unique:menu_category',
-                    'orderby' => 'required|unique:menu_category',
+                    'order' => 'required|integer',
                 ]);
 
                 $menu_cat               = new MenuCategory();
                 $menu_cat->name         = $request->name;
-                $menu_cat->orderby      = $request->orderby;
+                $menu_cat->order        = $request->order;
                 $menu_cat->slug         = $request->slug;
                 $menu_cat->description  = $request->description;
                 
@@ -78,11 +78,16 @@ class MenuCategoryController extends Controller
         DB::beginTransaction();
         try {
             if (Session::get('role_name') === 'Admin' || Session::get('role_name') === 'Super Admin') {
+                $request->validate([
+                    'name' => 'required',
+                    'slug' => 'required|unique:menu_category,slug,'.$id,
+                    'order' => 'required|integer',
+                ]);
 
                 $menu_cat = MenuCategory::find($id);
                 $menu_cat->name             = $request->name;
                 $menu_cat->slug             = $request->slug;
-                $menu_cat->orderby          = $request->orderby;
+                $menu_cat->order            = $request->order;
                 $menu_cat->description      = $request->description;
                 $menu_cat->meta_title       = $request->meta_title;
                 $menu_cat->meta_keywords    = $request->meta_keywords;

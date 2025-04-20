@@ -33,10 +33,12 @@
     <div class="main-wrapper">
         <div class="header">
             <div class="header-left">
-                <a href="{{ route('home') }}" class="logo">
+                {{-- <a href="{{ route('home') }}" class="logo"> --}}
+                <a href="{{ route('admin.home') }}" class="logo">
                     <img src="{{ URL::to('assets/img/settings/logo-black.png') }}" alt="Logo">
                 </a>
-                <a href="{{ route('home') }}" class="logo logo-small">
+                {{-- <a href="{{ route('home') }}" class="logo logo-small"> --}}
+                <a href="{{ route('admin.home') }}" class="logo logo-small">
                     <img src="{{ URL::to('assets/img/settings/favicon.png') }}" alt="Logo" width="30" height="30">
                 </a>
             </div>

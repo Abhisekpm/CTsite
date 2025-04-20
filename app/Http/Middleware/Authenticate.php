@@ -15,11 +15,16 @@ class Authenticate extends Middleware
      */
     protected function redirectTo($request)
     {
+        // Since default user login is disabled, we only care about admin.
         if (! $request->expectsJson()) {
-            if ($request->is('admin') || $request->is('admin/*')) {
-                return route('admin.login');
-            }
-            return route('login');
+            // Assume any unauthenticated access attempt requiring login
+            // should go to the admin login page.
+            return route('admin.login');
+            // if ($request->is('admin') || $request->is('admin/*')) {
+            //      return route('admin.login');
+            // }
+            // // No default 'login' route anymore, perhaps redirect to homepage?
+            // return route('/'); // Or throw an exception?
         }
     }
 }

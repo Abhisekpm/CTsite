@@ -3,7 +3,7 @@
         <div id="sidebar-menu" class="sidebar-menu">
             <ul>
                 <li class="{{set_active(['admin'])}}">
-                    <a href="{{ route('home') }}">
+                    <a href="{{ route('admin.home') }}">
                         <i class="fas fa-tachometer-alt"></i>
                         <span>Dashboard</span>
                     </a>

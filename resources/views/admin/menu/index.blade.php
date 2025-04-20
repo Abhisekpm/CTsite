@@ -1,4 +1,3 @@
-
 @extends('admin.layouts.master')
 @section('content')
 <div class="page-wrapper">
@@ -8,7 +7,8 @@
                 <div class="col">
                     <h3 class="page-title">All Menu</h3>
                     <ul class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li>
+                        {{-- <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li> --}}
+                        <li class="breadcrumb-item"><a href="{{ route('admin.home') }}">Dashboard</a></li>
                         <li class="breadcrumb-item active">All Menu</li>
                     </ul>
                 </div>

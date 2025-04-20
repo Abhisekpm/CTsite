@@ -1,4 +1,3 @@
-
 @extends('admin.layouts.master')
 @section('content')
 <div class="page-wrapper">
@@ -8,8 +7,9 @@
                 <div class="col">
                     <h3 class="page-title">All Collection Category</h3>
                     <ul class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li>
-                        <li class="breadcrumb-item active">All Album Category</li>
+                        {{-- <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li> --}}
+                        <li class="breadcrumb-item"><a href="{{ route('admin.home') }}">Dashboard</a></li>
+                        <li class="breadcrumb-item active">All Collection Category</li>
                     </ul>
                 </div>
             </div>

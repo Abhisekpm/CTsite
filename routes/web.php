@@ -53,14 +53,14 @@ Route::controller(MainHomeController::class)->group(function () {
     Route::get('/', 'index');
 });
 
-Route::group(['middleware' => 'auth'], function () {
-    Route::get('home', function () {
-        return view('home');
-    });
-    Route::get('home', function () {
-        return view('home');
-    });
-});
+// Route::group(['middleware' => 'auth'], function () { // Comment out group using default auth
+//     Route::get('home', function () {
+//         return view('home');
+//     });
+//     Route::get('home', function () {
+//         return view('home');
+//     });
+// });
 
 Route::controller(ControllersBlogsController::class)->group(function () {
     Route::get('blogs', 'index');
@@ -92,19 +92,20 @@ Route::controller(EmailController::class)->group(function () {
     Route::post('send-email', 'store')->name('contact.us.store');
 });
 
-Auth::routes();
+// Auth::routes(); // Comment out standard auth routes
 
 // ----------------------------- user controller -------------------------//
-Route::controller(UserManagementController::class)->group(function () {
-    Route::get('list/users', 'index')->middleware('auth')->name('list/users');
-    Route::post('change/password', 'changePassword')->name('change/password');
-    Route::get('view/user/edit/{id}', 'userView')->middleware('auth');
-    Route::post('user/update', 'userUpdate')->name('user/update');
-    Route::post('user/delete', 'userDelete')->name('user/delete');
-});
+// Comment out routes that required default user auth
+// Route::controller(UserManagementController::class)->group(function () {
+//     Route::get('list/users', 'index')->middleware('auth')->name('list/users');
+//     Route::post('change/password', 'changePassword')->name('change/password');
+//     Route::get('view/user/edit/{id}', 'userView')->middleware('auth');
+//     Route::post('user/update', 'userUpdate')->name('user/update');
+//     Route::post('user/delete', 'userDelete')->name('user/delete');
+// });
 
 // ------------------------ admin panel ----------------------- //
-
+// Keep admin routes as they are (using auth:admin)
 Route::group(['middleware' => ['auth:admin'], 'prefix' => 'admin'], function () {
     Route::controller(SettingsController::class)->group(function () {
         Route::get('/setting/page', 'index')->name('setting/page');
@@ -126,9 +127,9 @@ Route::group(['middleware' => ['auth:admin'], 'prefix' => 'admin'], function () 
     
     // ----------------------------- user controller -------------------------//
     Route::controller(UserManagementController::class)->group(function () {
-        Route::get('list/users', 'index')->middleware('auth')->name('list/users');
-        Route::post('change/password', 'changePassword')->name('change/password');
-        Route::get('view/user/edit/{id}', 'userView')->middleware('auth');
+        Route::get('list/users', 'index')->name('list/users'); // Remove ->middleware('auth') as group provides auth:admin
+        Route::post('change/password', 'changePassword')->name('change/password'); // Should this be admin changing user pass?
+        Route::get('view/user/edit/{id}', 'userView')->name('view/user/edit'); // Remove ->middleware('auth')
         Route::post('user/update', 'userUpdate')->name('user/update');
         Route::post('user/delete', 'userDelete')->name('user/delete');
     });
@@ -181,39 +182,39 @@ Route::group(['middleware' => ['auth:admin'], 'prefix' => 'admin'], function () 
     });
 
     Route::controller(BackendPagesController::class)->group(function () {
-        Route::get('pages', 'index')->middleware('auth')->name('pages');
-        Route::get('pages/create', 'create')->middleware('auth')->name('pages/create');
-        Route::post('pages/store', 'store')->middleware('auth')->name('pages/store');
-        Route::get('page/edit/{id}', 'edit')->middleware('auth')->name('pages/edit');
-        Route::post('page/update', 'update')->middleware('auth')->name('page/update');
-        Route::post('page/delete', 'destroy')->middleware('auth')->name('page/delete');
+        Route::get('pages', 'index')->name('pages');
+        Route::get('pages/create', 'create')->name('pages/create');
+        Route::post('pages/store', 'store')->name('pages/store');
+        Route::get('page/edit/{id}', 'edit')->name('pages/edit');
+        Route::post('page/update', 'update')->name('page/update');
+        Route::post('page/delete', 'destroy')->name('page/delete');
     });
 
     Route::controller(TestimonialController::class)->group(function () {
-        Route::get('testimonials', 'index')->middleware('auth')->name('testimonials');
-        Route::get('testimonials/create', 'create')->middleware('auth')->name('testimonials/create');
-        Route::post('testimonials/store', 'store')->middleware('auth')->name('testimonials/store');
-        Route::get('testimonial/edit/{id}', 'edit')->middleware('auth')->name('testimonial/edit');
-        Route::post('testimonial/update', 'update')->middleware('auth')->name('testimonial/update');
-        Route::post('testimonial/delete', 'destroy')->middleware('auth')->name('testimonial/delete');
+        Route::get('testimonials', 'index')->name('testimonials');
+        Route::get('testimonials/create', 'create')->name('testimonials/create');
+        Route::post('testimonials/store', 'store')->name('testimonials/store');
+        Route::get('testimonial/edit/{id}', 'edit')->name('testimonial/edit');
+        Route::post('testimonial/update', 'update')->name('testimonial/update');
+        Route::post('testimonial/delete', 'destroy')->name('testimonial/delete');
     });
 
     Route::controller(GalleryController::class)->group(function () {
-        Route::get('collection', 'index')->middleware('auth')->name('collection');
-        Route::get('collection/create', 'create')->middleware('auth')->name('collection/create');
-        Route::post('collection/store', 'store')->middleware('auth')->name('collection/store');
-        Route::get('collection/edit/{id}', 'edit')->middleware('auth')->name('collection/edit');
-        Route::post('collection/update/{id}', 'update')->middleware('auth');
-        Route::post('collection/delete', 'destroy')->middleware('auth')->name('collection/delete');
+        Route::get('collection', 'index')->name('collection');
+        Route::get('collection/create', 'create')->name('collection/create');
+        Route::post('collection/store', 'store')->name('collection/store');
+        Route::get('collection/edit/{id}', 'edit')->name('collection/edit');
+        Route::post('collection/update/{id}', 'update'); // Keep middleware if specifically needed beyond group?
+        Route::post('collection/delete', 'destroy')->name('collection/delete');
     });
 
     Route::controller(GallCatController::class)->group(function () {
-        Route::get('ccat', 'index')->middleware('auth')->name('ccat');
-        Route::get('ccat/create', 'create')->middleware('auth')->name('ccat/create');
-        Route::post('ccat/store', 'store')->middleware('auth')->name('ccat/store');
-        Route::get('ccat/edit/{id}', 'edit')->middleware('auth')->name('ccat/edit');
-        Route::post('ccat/update/{id}', 'update')->middleware('auth');
-        Route::post('ccat/delete', 'destroy')->middleware('auth')->name('ccat/delete');
+        Route::get('ccat', 'index')->name('ccat');
+        Route::get('ccat/create', 'create')->name('ccat/create');
+        Route::post('ccat/store', 'store')->name('ccat/store');
+        Route::get('ccat/edit/{id}', 'edit')->name('ccat/edit');
+        Route::post('ccat/update/{id}', 'update'); // Keep middleware if specifically needed beyond group?
+        Route::post('ccat/delete', 'destroy')->name('ccat/delete');
     });
 });
 
@@ -226,7 +227,7 @@ Route::controller(ControllersMenuController::class)->group(function () {
     Route::get('{slug}', 'show')->name('single-menu');
 });
 
-// Define Admin Login routes OUTSIDE the auth:admin group
+// Admin Login routes (Keep these)
 Route::group(['prefix' => 'admin'], function () {
     Route::controller(LoginController::class)->group(function () {
         Route::get('/login', 'login')->name('admin.login');

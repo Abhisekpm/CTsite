@@ -1,4 +1,3 @@
-
 @extends('admin.layouts.master')
 @section('content')
 {{-- message --}}
@@ -11,7 +10,8 @@
                     <div class="page-sub-header">
                         <h3 class="page-title">Welcome {{ Session::get('name') }}!</h3>
                         <ul class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
+                            {{-- <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li> --}}
+                            <li class="breadcrumb-item"><a href="{{ route('admin.home') }}">Home</a></li>
                             <li class="breadcrumb-item active">{{ Session::get('name') }}</li>
                         </ul>
                     </div>
@@ -278,7 +278,7 @@
                                     <img src="assets/img/icons/award-icon-01.svg" alt="Award">
                                 </div>
                                 <div class="award-list-outs">
-                                    <h4>1st place in "Chess”</h4>
+                                    <h4>1st place in "Chess"</h4>
                                     <h5>John Doe won 1st place in "Chess"</h5>
                                 </div>
                                 <div class="award-time-list">

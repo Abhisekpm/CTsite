@@ -1,4 +1,3 @@
-
 @extends('admin.layouts.app')
 @section('content')
 {{-- message --}}
@@ -8,7 +7,7 @@
         <h1>Welcome to Dashbord</h1>
 
         <h2>Sign in</h2>
-        <form action="{{ route('login') }}" method="POST">
+        <form action="{{ route('admin.login.post') }}" method="POST">
             @csrf
             <div class="form-group">
                 <label>Email<span class="login-danger">*</span></label>

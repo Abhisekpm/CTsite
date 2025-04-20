@@ -38,7 +38,7 @@ class GallCatController extends Controller
                 $ccat->name = $request->name;
                 $ccat->slug = $request->slug;
                 $imageName = time().'.'.$request->image->extension();
-                $request->image->move(base_path('assets/gallery'), $imageName);
+                $request->image->move(public_path('assets/gallery'), $imageName);
                 $ccat->image = $imageName;
                 $ccat->order = $request->order;
                 $ccat->meta_title = $request->meta_title;
@@ -86,9 +86,11 @@ class GallCatController extends Controller
                 $image = $request->file('image');
 
                 if($image) {
-                    unlink('assets/gallery/'.$image_name);
+                    if($ccat->image && file_exists(public_path('assets/gallery/'.$image_name))) {
+                        unlink(public_path('assets/gallery/'.$image_name));
+                    }
                     $image_name = rand() . '.' . $image->getClientOriginalExtension();
-                    $image->move(base_path('assets/gallery/'), $image_name);
+                    $image->move(public_path('assets/gallery/'), $image_name);
                     $ccat->image = $image_name;
                 }
                 $ccat->update();

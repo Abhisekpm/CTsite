@@ -19,19 +19,19 @@ class RedirectIfAuthenticated
      */
     public function handle(Request $request, Closure $next, ...$guards)
     {
-        $guards = empty($guards) ? [null] : $guards;
+        // Only concerned with the 'admin' guard now.
+        $guards = ['admin']; // Force check only for admin guard if middleware is 'guest:admin' 
+                              // or even just 'guest' if we assume only admin uses it now.
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                // If the admin guard is checked and authenticated, redirect to /admin
-                if ($guard === 'admin') {
-                    // Assuming 'admin.home' is the name for the GET /admin route
-                    return redirect()->route('admin.home');
-                }
-                // Otherwise (default guard 'web' or null), redirect to standard HOME
-                // return redirect(RouteServiceProvider::HOME);
-                 // Check if RouteServiceProvider::HOME exists, otherwise use a default like '/'
-                return redirect(defined(RouteServiceProvider::class . '::HOME') ? RouteServiceProvider::HOME : '/');
+                // If admin guard is authenticated, redirect to admin home
+                return redirect()->route('admin.home');
+                // if ($guard === 'admin') {
+                //     return redirect()->route('admin.home');
+                // }
+                // // Default user home redirect removed
+                // return redirect(defined(RouteServiceProvider::class . '::HOME') ? RouteServiceProvider::HOME : '/');
             }
         }
 
