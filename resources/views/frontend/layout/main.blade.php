@@ -54,7 +54,7 @@
                         <!--<a href="{{ url('blogs') }}" class="nav-item nav-link {{set_active(['blogs'])}}">Blogs</a>-->
                         <a href="{{ url('contact-us') }}" class="nav-item nav-link {{set_active(['contact-us'])}}">Contact</a>
                     </div>
-                    <a href="tel:+12675418620" class="btn btn-primary py-2 px-4">Call Now</a>
+                    <a href="{{ route('custom-order.create') }}" class="btn btn-primary py-2 px-4">Order Now</a>
                 </div>
             </nav>
             @yield('main')

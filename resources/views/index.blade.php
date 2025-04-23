@@ -12,7 +12,7 @@
         <div class="row align-items-center my-5 g-5 fix-header">
             <div class="col-lg-6 text-center text-lg-start pl-10" style="margin-top: -30px">
                 <h1 class="display-3 my-5 text-white animated slideInLeft handwriting-font typewriters">The Secret Ingredient is Always Love</h1>
-                <a href="{{ url('album') }}" class="btn btn-primary py-sm-3 px-sm-5 me-3 animated slideInLeft">Album</a>
+                <a href="{{ route('custom-order.create') }}" class="btn btn-primary py-sm-3 px-sm-5 me-3 animated slideInLeft">Order Now</a>
             </div>
             <div class="col-lg-6">
 
@@ -64,9 +64,9 @@
                 <h1 class="mb-4">Welcome to <img src="{{ asset('assets/img/logo-black.png') }}" width="200"
                         height="auto" /></h1>
                 <p class="mb-4">Back in the years, when people used to nibble on those baked goodies at family
-                    dos and exclaimed “Who made this?!” odds were that the answer would be Nupur.</p>
+                    dos and exclaimed "Who made this?!" odds were that the answer would be Nupur.</p>
                 <p class="mb-4">From a sweet toothed kid baking cakes for her siblings to churning out
-                    masterpieces from her West Chester home, Nupur Kundalia’s love for art and pastry has come a
+                    masterpieces from her West Chester home, Nupur Kundalia's love for art and pastry has come a
                     long way, culminating into Chocolate Therapy, a one stop shop for artisan desserts.</p>
                 <!-- <div class="row g-4 mb-4">
                     <div class="col-sm-6">
