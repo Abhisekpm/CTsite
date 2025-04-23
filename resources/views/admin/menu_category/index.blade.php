@@ -55,9 +55,14 @@
                                     <tr>
                                         <td>{{$num}}</td>
                                         <input type="hidden" class="menuCat_id" value="{{$list->id}}">
-                                        <td>{{ $list->name }}</td>
+                                        <td>
+                                            @if (Str::lower($list->name) == 'cake' || Str::lower($list->name) == 'cakes')
+                                                <i class="fa-regular fa-cake-candles me-2" style="color: var(--primary);"></i>
+                                            @endif
+                                            {{ $list->name }}
+                                        </td>
                                         <td>{{ $list->slug }}</td>
-                                        <td>{{ $list->orderby }}</td>
+                                        <td>{{ $list->order }}</td>
                                         <td>@if ($list->image)<img src="{{ asset('assets/menu/'.$list->image) }}" width="80" />@endif</td>
                                         <td>{{ \Carbon\Carbon::parse($list->created_at)->format('d F Y') }}</td>
                                         <td class="text-end">

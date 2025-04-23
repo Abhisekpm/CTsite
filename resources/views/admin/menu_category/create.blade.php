@@ -52,31 +52,65 @@
                         <div class="card-body pt-0">
                             <form action="{{ route('menu/category/store') }}" method="POST" enctype="multipart/form-data">
                                 @csrf
+
+                                {{-- Display Validation Errors --}}
+                                @if ($errors->any())
+                                    <div class="alert alert-danger">
+                                        <ul>
+                                            @foreach ($errors->all() as $error)
+                                                <li>{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
+
                                 <div class="settings-form">
                                     <div class="form-group">
                                         <label>Title <span class="star-red">*</span></label>
-                                        <input type="text" class="form-control" placeholder="Enter Title Here" name="name" id="name" onload="convertToSlug(this.value)"
+                                        <input type="text" class="form-control @error('name') is-invalid @enderror" placeholder="Enter Title Here" name="name" id="name" value="{{ old('name') }}" onload="convertToSlug(this.value)"
                                         onkeyup="convertToSlug(this.value)">
+                                        @error('name')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
                                     </div>
                                     <div class="form-group">
                                         <label>Slug <span class="star-red">*</span></label>
-                                        <input type="text" class="form-control" placeholder="Enter Slug Here" name="slug" id="slug">
+                                        <input type="text" class="form-control @error('slug') is-invalid @enderror" placeholder="Enter Slug Here" name="slug" id="slug" value="{{ old('slug') }}">
+                                        @error('slug')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
                                     </div>
                                     <div class="form-group">
                                         <label>Order <span class="star-red">*</span></label>
-                                        <input type="number" class="form-control" placeholder="Enter Order Here" name="orderby" id="orderby">
+                                        {{-- <input type="number" class="form-control" placeholder="Enter Order Here" name="orderby" id="orderby"> --}}
+                                        <input type="number" class="form-control @error('order') is-invalid @enderror" placeholder="Enter Order Here" name="order" id="order" value="{{ old('order') }}">
+                                        @error('order')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
                                     </div>
                                     <div class="form-group">
-                                        <p class="settings-label">Image</p>
+                                        <p class="settings-label">Image</p> {{-- Removed required star, as controller doesn't require it --}}
                                         <div class="settings-btn">
                                             <input type="file" accept="image/*" name="image" id="image" onchange="loadFile(event)"
-                                                class="hide-input">
+                                                class="hide-input @error('image') is-invalid @enderror">
                                             <label for="file" class="upload">
                                                 <i class="feather-upload"></i>
                                             </label>
                                         </div>
+                                        @error('image')
+                                            <span class="invalid-feedback d-block" role="alert"> {{-- Use d-block for file inputs --}}
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
                                         <h6 class="settings-size">Recommended image size is <span>150px x
                                                 150px</span></h6>
+                                        {{-- Image preview logic remains the same --}}
                                         <div class="upload-images" id="imagediv" style="display:none">
                                             <img id="previewImg" src="" alt="Image">
                                             <a href="javascript:void(0);" class="btn-icon logo-hide-btn">
@@ -86,24 +120,25 @@
                                     </div>
                                     <div class="form-group">
                                         <label>Description</label>
-                                        <textarea class="ckeditor form-control" name="description" id="description"></textarea>
+                                        <textarea class="ckeditor form-control" name="description" id="description">{{ old('description') }}</textarea>
                                     </div>
                                 </div>
+                                {{-- SEO Details Section --}}
                                 <div class="card-header">
                                     <h5 class="card-title">SEO Details</h5>
                                 </div>
                                 <div class="settings-form">
                                     <div class="form-group">
                                         <label>Meta Title</label>
-                                        <input type="text" class="form-control" placeholder="Enter Meta Title Here" name="meta_title" id="meta_title">
+                                        <input type="text" class="form-control" placeholder="Enter Meta Title Here" name="meta_title" id="meta_title" value="{{ old('meta_title') }}">
                                     </div>
                                     <div class="form-group">
                                         <label>Meta Keywords</label>
-                                        <input type="text" class="form-control" placeholder="Enter Meta Keywords Here" name="meta_keywords" id="meta_keywords">
+                                        <input type="text" class="form-control" placeholder="Enter Meta Keywords Here" name="meta_keywords" id="meta_keywords" value="{{ old('meta_keywords') }}">
                                     </div>
                                     <div class="form-group">
                                         <label>Meta Description</label>
-                                        <textarea class="form-control" name="meta_description" id="meta_description"></textarea>
+                                        <textarea class="form-control" name="meta_description" id="meta_description">{{ old('meta_description') }}</textarea>
                                     </div>
                                     <div class="form-group mb-0">
                                         <div class="settings-btns">

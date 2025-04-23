@@ -44,7 +44,7 @@ class MenuCategoryController extends Controller
                 if(isset($request->image))
                 {
                     $imageName = time() . '.' . $request->image->extension();
-                    $request->image->move(base_path('assets/menu'), $imageName);
+                    $request->image->move(public_path('assets/menu'), $imageName);
                     $menu_cat->image = $imageName;
                 }
 
@@ -98,12 +98,11 @@ class MenuCategoryController extends Controller
 
                 if ($image) {
                     
-                    if($menu_cat->image)
-                    {
-                        unlink('assets/menu/' . $image_name);
+                    if($menu_cat->image && file_exists(public_path('assets/menu/' . $image_name))) {
+                        unlink(public_path('assets/menu/' . $image_name));
                     }
                     $image_name = rand() . '.' . $image->getClientOriginalExtension();
-                    $image->move(base_path('assets/menu/'), $image_name);
+                    $image->move(public_path('assets/menu/'), $image_name);
                     
                 }
 

@@ -26,6 +26,7 @@ use App\Http\Controllers\Backend\TestimonialController;
 use App\Http\Controllers\BlogsController as ControllersBlogsController;
 use App\Http\Controllers\MainHomeController;
 use App\Http\Controllers\MenuController as ControllersMenuController;
+use App\Http\Controllers\OrderController;
 
 // use App\Http\Controllers\TestimonialController as ControllersTestimonialController;
 
@@ -71,7 +72,7 @@ Route::controller(ControllersBlogsController::class)->group(function () {
 Route::controller(PagesController::class)->group(function () {
     Route::get('about-us', 'index');
     Route::get('contact-us', 'contact');
-    Route::get('cakes-menu', 'cakes');
+    Route::get('cakes-menu', 'cakes')->name('cakes-menu');
 });
 
 Route::controller(ControllersMenuController::class)->group(function () {
@@ -221,6 +222,12 @@ Route::group(['middleware' => ['auth:admin'], 'prefix' => 'admin'], function () 
 Route::controller(CollectionController::class)->group(function () {
     Route::get('album', 'index');
     Route::get('album/{slug}', 'show');
+});
+
+// Add Custom Order Routes
+Route::controller(OrderController::class)->group(function () {
+    Route::get('custom-cake-order', 'create')->name('custom-order.create');
+    Route::post('custom-cake-order', 'store')->name('custom-order.store');
 });
 
 Route::controller(ControllersMenuController::class)->group(function () {

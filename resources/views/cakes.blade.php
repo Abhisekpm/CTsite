@@ -46,7 +46,7 @@
                                                         class="d-flex justify-content-between border-bottom-thick pb-2 m-b-20">
                                                         <span>6 Inch</span>
                                                         <span>Serves 10</span>
-                                                        <span class="text-primary">$45</span>
+                                                        <span class="text-primary">$50</span>
                                                     </h5>
                                                 </div>
                                             </div>
@@ -56,7 +56,7 @@
                                                         class="d-flex justify-content-between border-bottom-thick pb-2 m-b-20">
                                                         <span>8 Inch</span>
                                                         <span>Serves 15</span>
-                                                        <span class="text-primary">$65</span>
+                                                        <span class="text-primary">$70</span>
                                                     </h5>
                                                 </div>
                                             </div>
@@ -66,7 +66,7 @@
                                                         class="d-flex justify-content-between border-bottom-thick pb-2 m-b-20">
                                                         <span>9 Inch</span>
                                                         <span>Serves 25</span>
-                                                        <span class="text-primary">$85</span>
+                                                        <span class="text-primary">$90</span>
                                                     </h5>
                                                 </div>
                                             </div>
@@ -76,7 +76,7 @@
                                                         class="d-flex justify-content-between border-bottom-thick pb-2 m-b-20">
                                                         <span>10 Inch</span>
                                                         <span>Serves 35</span>
-                                                        <span class="text-primary">$110</span>
+                                                        <span class="text-primary">$120</span>
                                                     </h5>
                                                 </div>
                                             </div>
@@ -242,7 +242,10 @@
                                                             <div
                                                                 class="w-100 d-flex flex-column text-start border-bottom-thick ps-4">
                                                                 <h5 class="d-flex justify-content-between pb-2">
-                                                                    <span>Russian Honey</span>
+                                                                    <span>Russian Honey<br />
+                                                                    <span
+                                                                            class="sub-menu-items">Cannot be Eggless </span>
+                                                                                </span>
                                                                 </h5>
                                                             </div>
                                                         </div>
@@ -415,7 +418,7 @@
                                                             <div
                                                                 class="w-100 d-flex flex-column text-start border-bottom-thick ps-4">
                                                                 <h5 class="d-flex justify-content-between pb-2">
-                                                                    <span>Sachet Torte<br /><span
+                                                                    <span>Sacher Torte<br /><span
                                                                             class="sub-menu-items">(Apricot Jam and Chocolate Glaze)<br /> Cannot be custom decorated, Cannot be Eggless</span></span>
                                                                 </h5>
                                                             </div>
@@ -427,7 +430,7 @@
                                                                 <h5 class="d-flex justify-content-between pb-2">
                                                                     <span>Chocolate Opera<br /><span
                                                                             class="sub-menu-items">(Almond Cake with Coffee
-                                                                            Buttercream and Ganache)<br /> Cannot be custom decorated </span></span>
+                                                                            Buttercream and Ganache)<br /> Cannot be custom decorated, Cannot be Eggless </span></span>
                                                                 </h5>
                                                             </div>
                                                         </div>
@@ -521,13 +524,22 @@
                                                             </div>
                                                         </div>
                                                         <div class="d-flex align-items-center pb-20 menu-list">
-
+                                                            
+                                                            <div
+                                                                class="w-100 d-flex flex-column text-start border-bottom-thick ps-4">
+                                                                <h5 class="d-flex justify-content-between pb-2">
+                                                                    <span>Mango Rabdi</span>
+                                                                </h5>
+                                                            </div>
+                                                        </div>
+                                                        <div class="d-flex align-items-center pb-20 menu-list">
+                                                            
+                                                            
                                                             <div
                                                                 class="w-100 d-flex flex-column text-start border-bottom-thick ps-4">
                                                                 <h5 class="d-flex justify-content-between pb-2">
                                                                     <span>Sitaphal<br /><span
-                                                                            class="sub-menu-items">(Currently not 
-                                                                         available)</span></span>
+                                                                            class="sub-menu-items"></span></span>
                                                                 </h5>
                                                             </div>
                                                         </div>

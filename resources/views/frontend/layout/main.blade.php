@@ -58,7 +58,12 @@
                 </div>
             </nav>
             @yield('main')
-            @include('frontend.layout.testimonial')
+            
+            {{-- Conditionally include testimonials --}}
+            @if(Route::currentRouteName() !== 'custom-order.create')
+                @include('frontend.layout.testimonial')
+            @endif
+            
             <!-- Footer Start -->
             <div class="container-fluid bg-dark text-light footer pt-5 mt-5 wow fadeIn" data-wow-delay="0.1s">
                 <div class="container py-5">
@@ -115,7 +120,7 @@
                             <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
                                 &copy; <a class="border-bottom" href="#">Chocolate Therapy</a>, All Right Reserved.
 
-                                <!--/*** This template is free as long as you keep the footer author’s credit link/attribution link/backlink. If you'd like to use the template without the footer author’s credit link/attribution link/backlink, you can purchase the Credit Removal License from "https://htmlcodex.com/credit-removal". Thank you for your support. ***/-->
+                                <!--/*** This template is free as long as you keep the footer author's credit link/attribution link/backlink. If you'd like to use the template without the footer author's credit link/attribution link/backlink, you can purchase the Credit Removal License from "https://htmlcodex.com/credit-removal". Thank you for your support. ***/-->
                                 Design & Developed By <a href="https://www.dartdigitalagency.com/" target="_blank">Dart Digital Agency</a>
                             </div>
                             <div class="col-md-6 text-center text-md-end">
@@ -140,7 +145,7 @@
 
         @include('frontend.layout.script')
 
-
+        @stack('scripts')
 
 <script type="text/javascript" src="https://popupsmart.com/freechat.js"></script><script> window.start.init({ title: "Hi there ✌️", message: "How may we help you? Just send us a message now to get assistance.", color: "#90D6E2", position: "left", placeholder: "Enter your message", withText: "Write with", viaWhatsapp: "Or write us directly via Whatsapp", gty: "Go to your", awu: "and write us", connect: "Connect now",  button: "Write us", device: "everywhere", logo: "https://d2r80wdbkwti6l.cloudfront.net/ZhPxyaBmxpVmubBCCVq8Bmg9TjXWIwUy.jpg",  services: [{"name":"whatsapp","content":"+12675418620"},{"name":"phone","content":"+12675418620"}]})</script>
 </body>
