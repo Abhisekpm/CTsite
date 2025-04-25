@@ -112,7 +112,7 @@
                                     {{-- Pickup Time --}}
                                     <div class="col-md-6">
                                         <div class="form-floating">
-                                            <input type="time" class="form-control @error('pickup_time') is-invalid @enderror" id="pickup_time" name="pickup_time" placeholder="Time of Pickup" value="{{ old('pickup_time') }}" min="11:00" max="19:00" step="900">
+                                            <input type="time" class="form-control @error('pickup_time') is-invalid @enderror" id="pickup_time" name="pickup_time" placeholder="Time of Pickup" value="{{ old('pickup_time') }}" min="11:00" max="19:00" step="900" required>
                                             <label for="pickup_time">Time of Pickup (11am - 7pm)</label>
                                             @error('pickup_time') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                             <div id="pickup_time_js_error" class="text-danger small mt-1"></div>

@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Validator; // Import Validator facade if needed f
 use Illuminate\Validation\Rule; // Import Rule for more complex rules like 'in'
 use App\Models\CustomOrder; // Import the CustomOrder model
 use Illuminate\Support\Facades\Storage; // Import Storage facade for file uploads
+use Twilio\Rest\Client as TwilioClient; // Import Twilio Client
+use Twilio\Exceptions\TwilioException; // Import Twilio Exception for specific catching
 
 class OrderController extends Controller
 {
@@ -74,12 +76,60 @@ class OrderController extends Controller
         // Add image path to validated data (if uploaded)
         $validatedData['decoration_image_path'] = $imagePath;
 
+        $order = null; // Initialize order variable
+
         // Create and store the new order
         try {
-            CustomOrder::create($validatedData);
+            $order = CustomOrder::create($validatedData);
 
-            // Redirect back with success message (actual message)
-            return redirect()->route('custom-order.create')->with('success', 'Thank you for your order request! We will contact you shortly to confirm details and pricing.');
+            // --- Send SMS Notifications --- 
+            if ($order) { // Proceed only if order was created successfully
+                try {
+                    $twilioSid = env('TWILIO_SID');
+                    $twilioToken = env('TWILIO_TOKEN');
+                    $twilioFrom = env('TWILIO_FROM');
+                    $adminPhone = env('ADMIN_PHONE');
+                    $customerPhone = $order->phone; // Make sure phone number format matches Twilio requirements (E.164 recommended)
+
+                    if ($twilioSid && $twilioToken && $twilioFrom && $adminPhone && $customerPhone) {
+                        $twilio = new TwilioClient($twilioSid, $twilioToken);
+
+                        // 1. Customer SMS (Pending)
+                        $customerMessage = "Thanks, {$order->customer_name}! Your custom cake request (#{$order->id}) is received and pending review. We'll text you with pricing soon.";
+                        $twilio->messages->create(
+                            $customerPhone, // To customer
+                            [
+                                'from' => $twilioFrom,
+                                'body' => $customerMessage
+                            ]
+                        );
+
+                        // 2. Admin SMS (New Order)
+                        $adminMessage = "New custom cake request (#{$order->id}) from {$order->customer_name} for pickup on {$order->pickup_date}. Needs pricing.";
+                         $twilio->messages->create(
+                            $adminPhone, // To admin
+                            [
+                                'from' => $twilioFrom,
+                                'body' => $adminMessage
+                            ]
+                        );
+
+                    } else {
+                         logger()->warning('Twilio SMS not sent for order #' . $order->id . '. Missing Twilio/Admin config in .env');
+                    }
+
+                } catch (TwilioException $e) {
+                    logger()->error('TwilioException sending SMS for order #' . ($order ? $order->id : 'N/A') . ': ' . $e->getMessage());
+                    // Don't stop execution, but log the error
+                } catch (\Exception $e) {
+                    logger()->error('General Exception sending SMS for order #' . ($order ? $order->id : 'N/A') . ': ' . $e->getMessage());
+                     // Don't stop execution, but log the error
+                }
+            }
+            // --- End SMS Notifications --- 
+
+            // Redirect back with success message
+            return redirect()->route('custom-order.create')->with('success', 'Thank you for your order request! We will text you shortly to confirm details and pricing.');
 
         } catch (\Exception $e) {
             // Log the error

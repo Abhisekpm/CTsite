@@ -1,6 +1,6 @@
 # Custom Cake Order Feature To-Do List
 
-This list tracks the implementation steps for the custom cake order form.
+This list tracks the implementation steps for the custom cake order form and confirmation workflow.
 
 ## Frontend (View - `resources/views/custom_order.blade.php`)
 
@@ -22,8 +22,7 @@ This list tracks the implementation steps for the custom cake order form.
     - [x] Create a `CustomOrder` model and corresponding migration (via `make:model -m`).
     - [x] Store the validated order data into the `custom_orders` database table (using `CustomOrder::create()`).
     - [x] Handle optional image upload storage (using `Storage::disk('public')->put()`).
-    - [ ] Implement logic to send an email notification to the admin/shop owner.
-    - [ ] Implement logic to send a confirmation email to the customer (optional).
+    - [ ] Trigger Notifications (Email & SMS) after successful order save.
     - [x] Redirect back to the form with a success message upon successful submission (actual message added).
 
 ## Routing (`routes/web.php`)
@@ -35,28 +34,68 @@ This list tracks the implementation steps for the custom cake order form.
 ## Database
 
 - [x] Create `custom_orders` table migration.
-    - [x] Define columns for: `customer_name`, `email`, `phone`, `pickup_date`, `pickup_time`, `cake_size`, `cake_flavor`, `eggs_ok`, `message_on_cake`, `custom_decoration`, `decoration_image_path`, `allergies`, `status`, timestamps.
-- [x] Run the migration (`php artisan migrate`).
+    - [x] Define initial columns.
+- [x] Run the initial migration.
+- [ ] **Create new migration to add `price` column** (nullable decimal/float/integer) to `custom_orders` table.
+- [ ] **Run the new migration.**
+- [ ] Review `status` column values/defaults (e.g., pending, priced, confirmed, cancelled).
 
 ## Model
 
 - [x] Create `CustomOrder` Eloquent model (`app/Models/CustomOrder.php`).
     - [x] Define `$fillable` property for mass assignment security.
     - [ ] Define any necessary relationships (if applicable later).
+- [ ] **Add `price` to `$fillable` property.**
 
-## Email
+## Configuration (`.env`, `config/*`)
 
-- [ ] Create a Mailable class for the admin notification (e.g., `AdminOrderNotification`).
-    - [ ] Define email content (subject, view).
-    - [ ] Create a Blade view for the admin email.
-- [ ] Create a Mailable class for the customer confirmation (e.g., `CustomerOrderConfirmation` - optional).
-    - [ ] Define email content (subject, view).
-    - [ ] Create a Blade view for the customer email.
-- [ ] Configure mail settings in the `.env` file.
+- [ ] Configure Twilio credentials (`TWILIO_SID`, `TWILIO_TOKEN`, `TWILIO_FROM`) in `.env`.
+- [ ] Add Admin contact info (`ADMIN_PHONE`) to `.env` (or decide to fetch from settings).
+- [ ] Verify `config/services.php` uses Twilio `.env` variables (if placing them there).
 
-## Admin Panel Integration (Optional - Future Enhancement)
+## Initial Order Submission (`OrderController@store`)
 
-- [ ] Create routes for viewing/managing custom orders in the admin area (e.g., `/admin/custom-orders`).
-- [ ] Create controller methods in an admin controller (e.g., `Admin/OrderController.php`) to list, view, update status, and delete orders.
-- [ ] Create Blade views for the admin order management interface.
-- [ ] Add links to the admin sidebar. 
+- [x] Validate submitted data.
+- [x] Handle optional image upload storage.
+- [x] Save order with `status` = 'pending'.
+- [ ] Implement **initial Customer SMS** (Pending Status) sending.
+- [ ] Implement **Admin Notification SMS** (New Pending Order).
+- [x] Redirect back with success message.
+
+## SMS Notifications (Twilio)
+
+- [ ] Install Twilio SDK (`composer require twilio/sdk`).
+- [ ] Implement Twilio client instantiation.
+- [ ] Implement logic for: 
+    - [ ] Customer Initial Pending SMS (`OrderController@store`).
+    - [ ] Admin New Order SMS (`OrderController@store`).
+    - [ ] Customer Priced / Confirmation Request SMS (`Admin Order Update Logic`).
+    - [ ] (Optional) Customer Final Confirmation SMS (`Webhook Logic`).
+    - [ ] (Optional) Admin Order Confirmed SMS (`Webhook Logic`).
+- [ ] Add error handling (`try-catch`) for SMS sending.
+
+## Admin Panel Integration (MANDATORY)
+
+- [ ] Create Routes (`/admin/orders`, `/admin/orders/{id}/price`).
+- [ ] Create Controller (`Admin/OrderController`).
+    - [ ] Method to list pending/priced orders.
+    - [ ] Method to show a single order.
+    - [ ] Method to update price & status (triggering customer price SMS).
+- [ ] Create Blade Views for Admin:
+    - [ ] Order list view.
+    - [ ] Order detail view with pricing form.
+- [ ] Add links to admin sidebar.
+
+## Twilio Webhook for SMS Replies
+
+- [ ] Configure Twilio Messaging Service Webhook URL to point to Laravel app.
+- [ ] Define route for webhook (e.g., `/webhooks/twilio/sms/reply`, POST, exclude CSRF).
+- [ ] Create Controller (`TwilioWebhookController`).
+- [ ] Implement webhook logic:
+    - [ ] Validate Twilio request signature.
+    - [ ] Extract `From` number and `Body`.
+    - [ ] Find corresponding 'priced' order.
+    - [ ] Check for confirmation keyword (e.g., "YES").
+    - [ ] Update order status to 'confirmed'.
+    - [ ] Trigger optional final notifications (SMS).
+    - [ ] Return empty TwiML response. 

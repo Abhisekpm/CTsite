@@ -28,6 +28,7 @@ class CustomOrder extends Model
         'decoration_image_path',
         'allergies',
         'status', // Although it defaults, allow it to be fillable if needed later
+        'price', // Added price
     ];
 
     /**

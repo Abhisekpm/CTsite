@@ -32,6 +32,12 @@
                         <span>Menu Category</span>
                     </a>
                 </li>
+                <li class="{{set_active(['admin/orders', 'admin/orders/*'])}}">
+                    <a href="{{ route('admin.orders.index') }}">
+                        <i class="fas fa-receipt"></i>
+                        <span>Custom Orders</span>
+                    </a>
+                </li>
                 <li class="{{set_active(['admin/comments'])}}">
                     <a href="{{ route('comments') }}">
                         <i class="fas fa-envelope"></i>
