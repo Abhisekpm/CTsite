@@ -22,7 +22,7 @@ This list tracks the implementation steps for the custom cake order form and con
     - [x] Create a `CustomOrder` model and corresponding migration (via `make:model -m`).
     - [x] Store the validated order data into the `custom_orders` database table (using `CustomOrder::create()`).
     - [x] Handle optional image upload storage (using `Storage::disk('public')->put()`).
-    - [ ] Trigger Notifications (Email & SMS) after successful order save.
+    - [x] Trigger Notifications (Email & SMS) after successful order save.
     - [x] Redirect back to the form with a success message upon successful submission (actual message added).
 
 ## Routing (`routes/web.php`)
@@ -36,8 +36,8 @@ This list tracks the implementation steps for the custom cake order form and con
 - [x] Create `custom_orders` table migration.
     - [x] Define initial columns.
 - [x] Run the initial migration.
-- [ ] **Create new migration to add `price` column** (nullable decimal/float/integer) to `custom_orders` table.
-- [ ] **Run the new migration.**
+- [x] **Create new migration to add `price` column** (nullable decimal/float/integer) to `custom_orders` table.
+- [x] **Run the new migration.**
 - [ ] Review `status` column values/defaults (e.g., pending, priced, confirmed, cancelled).
 
 ## Model
@@ -45,12 +45,12 @@ This list tracks the implementation steps for the custom cake order form and con
 - [x] Create `CustomOrder` Eloquent model (`app/Models/CustomOrder.php`).
     - [x] Define `$fillable` property for mass assignment security.
     - [ ] Define any necessary relationships (if applicable later).
-- [ ] **Add `price` to `$fillable` property.**
+- [x] **Add `price` to `$fillable` property.**
 
 ## Configuration (`.env`, `config/*`)
 
-- [ ] Configure Twilio credentials (`TWILIO_SID`, `TWILIO_TOKEN`, `TWILIO_FROM`) in `.env`.
-- [ ] Add Admin contact info (`ADMIN_PHONE`) to `.env` (or decide to fetch from settings).
+- [x] Configure Twilio credentials (`TWILIO_SID`, `TWILIO_TOKEN`, `TWILIO_FROM`) in `.env`.
+- [x] Add Admin contact info (`ADMIN_PHONE`) to `.env` (or decide to fetch from settings).
 - [ ] Verify `config/services.php` uses Twilio `.env` variables (if placing them there).
 
 ## Initial Order Submission (`OrderController@store`)
@@ -58,44 +58,50 @@ This list tracks the implementation steps for the custom cake order form and con
 - [x] Validate submitted data.
 - [x] Handle optional image upload storage.
 - [x] Save order with `status` = 'pending'.
-- [ ] Implement **initial Customer SMS** (Pending Status) sending.
-- [ ] Implement **Admin Notification SMS** (New Pending Order).
+- [x] Implement **initial Customer SMS** (Pending Status) sending.
+- [x] Implement **Admin Notification SMS** (New Pending Order).
 - [x] Redirect back with success message.
 
 ## SMS Notifications (Twilio)
 
-- [ ] Install Twilio SDK (`composer require twilio/sdk`).
-- [ ] Implement Twilio client instantiation.
-- [ ] Implement logic for: 
-    - [ ] Customer Initial Pending SMS (`OrderController@store`).
-    - [ ] Admin New Order SMS (`OrderController@store`).
-    - [ ] Customer Priced / Confirmation Request SMS (`Admin Order Update Logic`).
+- [x] Install Twilio SDK (`composer require twilio/sdk`).
+- [x] Implement Twilio client instantiation.
+- [x] Implement logic for: 
+    - [x] Customer Initial Pending SMS (`OrderController@store`).
+    - [x] Admin New Order SMS (`OrderController@store`).
+    - [x] Customer Priced / Confirmation Request SMS (`Admin Order Update Logic` -> `Admin/OrderController@updatePrice`).
     - [ ] (Optional) Customer Final Confirmation SMS (`Webhook Logic`).
     - [ ] (Optional) Admin Order Confirmed SMS (`Webhook Logic`).
-- [ ] Add error handling (`try-catch`) for SMS sending.
+- [x] Add error handling (`try-catch`) for SMS sending.
 
 ## Admin Panel Integration (MANDATORY)
 
-- [ ] Create Routes (`/admin/orders`, `/admin/orders/{id}/price`).
-- [ ] Create Controller (`Admin/OrderController`).
-    - [ ] Method to list pending/priced orders.
-    - [ ] Method to show a single order.
-    - [ ] Method to update price & status (triggering customer price SMS).
-- [ ] Create Blade Views for Admin:
-    - [ ] Order list view.
-    - [ ] Order detail view with pricing form.
-- [ ] Add links to admin sidebar.
+- [x] Create Routes (`/admin/orders`, `/admin/orders/{id}/price`).
+- [x] Create Controller (`Admin/OrderController`).
+    - [x] Method to list pending/priced orders.
+    - [x] Method to show a single order.
+    - [x] Method to update price & status (triggering customer price SMS).
+- [x] Create Blade Views for Admin:
+    - [x] Order list view.
+    - [x] Order detail view with pricing form.
+- [x] Add links to admin sidebar.
 
 ## Twilio Webhook for SMS Replies
 
 - [ ] Configure Twilio Messaging Service Webhook URL to point to Laravel app.
-- [ ] Define route for webhook (e.g., `/webhooks/twilio/sms/reply`, POST, exclude CSRF).
-- [ ] Create Controller (`TwilioWebhookController`).
-- [ ] Implement webhook logic:
-    - [ ] Validate Twilio request signature.
-    - [ ] Extract `From` number and `Body`.
-    - [ ] Find corresponding 'priced' order.
-    - [ ] Check for confirmation keyword (e.g., "YES").
-    - [ ] Update order status to 'confirmed'.
-    - [ ] Trigger optional final notifications (SMS).
-    - [ ] Return empty TwiML response. 
+- [x] Define route for webhook (e.g., `/webhooks/twilio/sms`, POST, exclude CSRF).
+- [x] Create Controller (`TwilioWebhookController`).
+- [x] Implement webhook logic (`handle` method):
+    - [ ] Validate Twilio request signature. (Code commented out - **recommended for production**)
+    - [x] Extract `From` number and `Body`.
+    - [ ] Consider Phone Number Normalization (e.g., E.164) for robust matching. 
+    - [x] Find corresponding 'priced' order.
+    - [x] Check for confirmation keyword (e.g., "YES").
+    - [x] Update order status to 'confirmed'.
+    - [ ] Trigger optional final notifications (SMS). (Code commented out)
+    - [x] Return empty TwiML response. 
+
+ - Configuration: Configuring the webhook URL in Twilio and potentially verifying Twilio config in config/services.php.
+ - Webhook Enhancements: Implementing request validation, phone number normalization, and optional final notifications.
+ - Frontend Polish: Adding JS enhancements to the customer order form.
+ - Testing: Thorough end-to-end testing once the Twilio campaign/registration is complete.

@@ -28,6 +28,7 @@ use App\Http\Controllers\MainHomeController;
 use App\Http\Controllers\MenuController as ControllersMenuController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\TwilioWebhookController;
 
 // use App\Http\Controllers\TestimonialController as ControllersTestimonialController;
 
@@ -250,3 +251,9 @@ Route::group(['prefix' => 'admin'], function () {
         Route::post('/login', 'authenticate')->name('admin.login.post');
     });
 });
+
+// --- Twilio Webhook Route --- 
+// Note: This route is outside the default 'web' middleware group by default
+// which usually includes CSRF protection. If placing inside `web` group,
+// ensure CSRF is excluded for this route in App/Http/Middleware/VerifyCsrfToken.php
+Route::post('/webhooks/twilio/sms', [TwilioWebhookController::class, 'handle'])->name('webhooks.twilio.sms');

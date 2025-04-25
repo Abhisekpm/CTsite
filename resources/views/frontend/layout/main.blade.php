@@ -22,6 +22,11 @@
 
   gtag('config', 'UA-261673956-1');
 </script>
+
+    {{-- Flatpickr CSS --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+    @stack('styles') {{-- Added stack for page-specific styles --}}
 </head>
 
 <body>
@@ -144,6 +149,9 @@
         </div>
 
         @include('frontend.layout.script')
+
+        {{-- Flatpickr JS --}}
+        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
         @stack('scripts')
 
