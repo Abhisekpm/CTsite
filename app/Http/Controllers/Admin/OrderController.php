@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\CustomOrder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon; // Added Carbon for date comparison
 use Twilio\Rest\Client as TwilioClient; // Import Twilio Client
 use Twilio\Exceptions\TwilioException; // Import Twilio Exception
 use Exception; // Import base Exception
@@ -22,22 +23,31 @@ class OrderController extends Controller
         // Get status filter from request, default to null (all)
         $status = $request->query('status');
         $validStatuses = ['pending', 'priced', 'confirmed']; // Add others if needed
+        $filter = $request->query('filter'); // Get the new filter parameter
 
         // Start query builder
-        $query = CustomOrder::orderBy('created_at', 'desc');
+        $query = CustomOrder::orderBy('pickup_date', 'asc');
 
         // Apply status filter if a valid status is provided
         if ($status && in_array($status, $validStatuses)) {
             $query->where('status', $status);
         }
 
-        // Fetch orders with pagination
-        $orders = $query->paginate(20)->withQueryString(); // Append query string to pagination links
+        // Apply future orders filter if requested
+        if ($filter === 'future') {
+            $query->whereDate('pickup_date', '>=', Carbon::today());
+        }
 
-        // Pass orders and current status filter to the view
+        // Fetch orders with pagination
+        // Important: withQueryString() will now preserve both 'status' and 'filter' parameters
+        $orders = $query->paginate(20)->withQueryString(); 
+
+        // Pass orders and current filters to the view
         return view('admin.orders.index', [
             'orders' => $orders,
-            'currentStatus' => $status // Pass the current filter value
+            'currentStatus' => $status, // Pass the current status filter value
+            // No need to pass the future filter state explicitly, 
+            // the view logic already checks request()->query('filter')
         ]);
     }
 

@@ -98,6 +98,10 @@
                                             <label for="phone">Phone Number</label>
                                             @error('phone') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                             <div id="phone_js_error" class="invalid-feedback"></div>
+                                            {{-- Add Opt-in Text --}}
+                                            <small class="form-text text-muted">
+                                                By providing your phone number, you agree to receive text message notifications about your order status. Message & data rates may apply.
+                                            </small>
                                         </div>
                                     </div>
                                     {{-- Pickup Date --}}

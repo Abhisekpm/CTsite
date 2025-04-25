@@ -8,8 +8,8 @@ This list tracks the implementation steps for the custom cake order form and con
 - [x] Add HTML form with all required fields (Name, Email, Phone, Pickup Date/Time, Size, Flavor, Eggs, Message, Decorations, Allergies).
 - [x] Display validation errors.
 - [x] Display success message.
-- [ ] Add JavaScript for date/time picker enhancement (e.g., disable past dates, format restrictions).
-- [ ] Consider adding client-side validation for better UX (optional).
+- [x] Add JavaScript for date/time picker enhancement (e.g., disable past dates, format restrictions). (Using Flatpickr)
+- [x] Consider adding client-side validation for better UX (optional). (Basic tab validation exists)
 - [x] Implement image upload for custom decoration ideas (input field added, form enctype updated).
 
 ## Backend (Controller - `app/Http/Controllers/OrderController.php`)
@@ -101,7 +101,35 @@ This list tracks the implementation steps for the custom cake order form and con
     - [ ] Trigger optional final notifications (SMS). (Code commented out)
     - [x] Return empty TwiML response. 
 
+## Multiple Image Uploads & Preview (Future Enhancement)
+
+- [ ] **Database:** Create `custom_order_images` table (migration needed: `id`, `custom_order_id`, `path`, `timestamps`).
+- [ ] **Model:** Create `CustomOrderImage` model (`$fillable`).
+- [ ] **Model:** Add `hasMany` relationship (`images()`) from `CustomOrder` to `CustomOrderImage`.
+- [ ] **Frontend (HTML):** Update file input in `custom_order.blade.php`:
+    - [ ] Add `multiple` attribute.
+    - [ ] Change `name` to `decoration_images[]`.
+    - [ ] Add `div` for preview (`id="image-preview-container"`).
+- [ ] **Frontend (JS):** In `custom_order.blade.php`:
+    - [ ] Add `change` event listener to file input.
+    - [ ] On change, clear preview `div`.
+    - [ ] Loop through selected files (`event.target.files`).
+    - [ ] Use `FileReader` to read each file.
+    - [ ] Create `img` element for thumbnail and append to preview `div`.
+- [ ] **Backend (`OrderController@store`):**
+    - [ ] Update validation rules for `decoration_images` (array) and `decoration_images.*` (each file).
+    - [ ] Check `request->hasFile('decoration_images')`.
+    - [ ] Loop through `$request->file('decoration_images')`, storing each file.
+    - [ ] After `CustomOrder` is saved, loop through stored paths and create associated `CustomOrderImage` records.
+    - [ ] Remove old single `decoration_image_path` logic/column usage.
+- [ ] **Admin View (`admin/orders/show.blade.php`):**
+    - [ ] Access images via relationship (`$order->images`).
+    - [ ] Loop through images and display each using `Storage::url($image->path)`.
+- [ ] **Database Cleanup:** Create migration to remove `decoration_image_path` column from `custom_orders` table (run after verification).
+
+## Remaining Tasks / Next Steps
+
  - Configuration: Configuring the webhook URL in Twilio and potentially verifying Twilio config in config/services.php.
  - Webhook Enhancements: Implementing request validation, phone number normalization, and optional final notifications.
- - Frontend Polish: Adding JS enhancements to the customer order form.
+ - Frontend Polish: Adding JS enhancements to the customer order form (e.g., better client-side validation beyond tabs).
  - Testing: Thorough end-to-end testing once the Twilio campaign/registration is complete.
