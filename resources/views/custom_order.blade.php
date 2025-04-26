@@ -438,32 +438,39 @@
                                      {{-- Message on Cake --}}
                                     <div class="col-12">
                                         <div class="form-floating">
-                                            <input type="text" class="form-control @error('message_on_cake') is-invalid @enderror" id="message_on_cake" name="message_on_cake" placeholder="Message on Cake (Optional)" value="{{ old('message_on_cake') }}">
+                                            <textarea class="form-control @error('message_on_cake') is-invalid @enderror" placeholder="Any specific message to write on the cake? (e.g., Happy Birthday Sarah)" id="message_on_cake" name="message_on_cake" style="height: 80px">{{ old('message_on_cake') }}</textarea>
                                             <label for="message_on_cake">Message on Cake (Optional)</label>
                                             @error('message_on_cake') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                         </div>
                                     </div>
-                                    {{-- Custom Decoration Textarea --}}
+
+                                    {{-- Custom Decoration Details --}}
                                     <div class="col-12">
                                         <div class="form-floating">
-                                            <textarea class="form-control @error('custom_decoration') is-invalid @enderror" placeholder="Describe custom decoration requirements (Optional)" id="custom_decoration" name="custom_decoration" style="height: 100px">{{ old('custom_decoration') }}</textarea>
-                                            <label for="custom_decoration">Custom Decoration (Describe requirement, leave blank if standard)</label>
+                                            <textarea class="form-control @error('custom_decoration') is-invalid @enderror" placeholder="Describe your custom decoration ideas (colors, theme, style, etc.)" id="custom_decoration" name="custom_decoration" style="height: 100px">{{ old('custom_decoration') }}</textarea>
+                                            <label for="custom_decoration">Custom Decoration Ideas</label>
                                             @error('custom_decoration') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                         </div>
                                     </div>
-                                    {{-- Decoration Image Upload --}}
+
+                                    {{-- Image Upload --}}
                                     <div class="col-12">
-                                         <label for="decoration_image" class="form-label">Upload Inspiration Photo (Optional)</label>
-                                         <input class="form-control @error('decoration_image') is-invalid @enderror" type="file" id="decoration_image" name="decoration_image" accept="image/*">
-                                         @error('decoration_image') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                                         <small class="form-text text-muted">Max file size: 2MB. Allowed types: jpg, png, gif.</small>
+                                        <label for="decoration_images" class="form-label">Upload Image(s) for Inspiration (Optional):</label>
+                                        <input class="form-control @error('decoration_images') is-invalid @enderror" type="file" id="decoration_images" name="decoration_images[]" multiple>
+                                        <small class="form-text text-muted">You can upload multiple images (JPG, PNG, GIF). Max 5MB per image.</small>
+                                        @error('decoration_images') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                        @error('decoration_images.*') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror {{-- Error for individual files in array --}}
+                                        
+                                        {{-- Image Preview Container --}}
+                                        <div id="image-preview-container" class="mt-3 d-flex flex-wrap gap-2"></div>
                                     </div>
-                                    {{-- Navigation & Submit --}}
+
+                                    {{-- Navigation --}}
                                      <div class="col-6 text-start mt-3">
                                          <button class="btn btn-secondary py-2 px-4 btn-prev" type="button"><i class="fas fa-arrow-left me-1"></i> Previous</button>
                                      </div>
                                     <div class="col-6 text-end mt-3">
-                                        <button class="btn btn-primary w-100 py-3" type="submit">Submit Order Request</button>
+                                        <button class="btn btn-primary w-100 py-3" type="submit" id="submitOrderBtn">Submit Order Request</button>
                                     </div>
                                 </div>
                             </div>
@@ -773,7 +780,57 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     // --- End Flavor Click Logic ---
 
-});
+    // --- Image Preview Logic ---
+    const imageInput = document.getElementById('decoration_images');
+    const previewContainer = document.getElementById('image-preview-container');
+    const maxFileSize = 5 * 1024 * 1024; // 5MB in bytes
+
+    if (imageInput && previewContainer) {
+        imageInput.addEventListener('change', function(event) {
+            previewContainer.innerHTML = ''; // Clear previous previews
+            const files = event.target.files;
+            let fileError = false;
+
+            if (files.length > 0) {
+                Array.from(files).forEach(file => {
+                    if (file.size > maxFileSize) {
+                        alert(`File "${file.name}" exceeds the 5MB size limit.`);
+                        fileError = true;
+                        return; // Skip this file
+                    }
+
+                    if (!file.type.startsWith('image/')){
+                        alert(`File "${file.name}" is not a valid image type.`);
+                        fileError = true;
+                        return; // Skip this file
+                    }
+
+                    const reader = new FileReader();
+
+                    reader.onload = function(e) {
+                        const imgElement = document.createElement('img');
+                        imgElement.src = e.target.result;
+                        imgElement.style.maxWidth = '100px';
+                        imgElement.style.maxHeight = '100px';
+                        imgElement.style.objectFit = 'cover'; // Or 'contain'
+                        imgElement.style.borderRadius = '4px';
+                        imgElement.alt = file.name; // Add alt text
+                        previewContainer.appendChild(imgElement);
+                    }
+                    reader.readAsDataURL(file);
+                });
+
+                // If any file had an error, clear the input
+                if (fileError) {
+                    imageInput.value = ''; // Clear the selected files
+                    previewContainer.innerHTML = ''; // Clear previews again
+                }
+            }
+        });
+    }
+    // --- End Image Preview Logic ---
+
+}); // End of the main DOMContentLoaded listener
 </script>
 @endpush
 

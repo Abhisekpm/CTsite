@@ -44,7 +44,7 @@ This list tracks the implementation steps for the custom cake order form and con
 
 - [x] Create `CustomOrder` Eloquent model (`app/Models/CustomOrder.php`).
     - [x] Define `$fillable` property for mass assignment security.
-    - [ ] Define any necessary relationships (if applicable later).
+    - [x] Define any necessary relationships (if applicable later).
 - [x] **Add `price` to `$fillable` property.**
 
 ## Configuration (`.env`, `config/*`)
@@ -103,29 +103,29 @@ This list tracks the implementation steps for the custom cake order form and con
 
 ## Multiple Image Uploads & Preview (Future Enhancement)
 
-- [ ] **Database:** Create `custom_order_images` table (migration needed: `id`, `custom_order_id`, `path`, `timestamps`).
-- [ ] **Model:** Create `CustomOrderImage` model (`$fillable`).
-- [ ] **Model:** Add `hasMany` relationship (`images()`) from `CustomOrder` to `CustomOrderImage`.
-- [ ] **Frontend (HTML):** Update file input in `custom_order.blade.php`:
-    - [ ] Add `multiple` attribute.
-    - [ ] Change `name` to `decoration_images[]`.
-    - [ ] Add `div` for preview (`id="image-preview-container"`).
-- [ ] **Frontend (JS):** In `custom_order.blade.php`:
-    - [ ] Add `change` event listener to file input.
-    - [ ] On change, clear preview `div`.
-    - [ ] Loop through selected files (`event.target.files`).
-    - [ ] Use `FileReader` to read each file.
-    - [ ] Create `img` element for thumbnail and append to preview `div`.
-- [ ] **Backend (`OrderController@store`):**
-    - [ ] Update validation rules for `decoration_images` (array) and `decoration_images.*` (each file).
-    - [ ] Check `request->hasFile('decoration_images')`.
-    - [ ] Loop through `$request->file('decoration_images')`, storing each file.
-    - [ ] After `CustomOrder` is saved, loop through stored paths and create associated `CustomOrderImage` records.
-    - [ ] Remove old single `decoration_image_path` logic/column usage.
-- [ ] **Admin View (`admin/orders/show.blade.php`):**
-    - [ ] Access images via relationship (`$order->images`).
-    - [ ] Loop through images and display each using `Storage::url($image->path)`.
-- [ ] **Database Cleanup:** Create migration to remove `decoration_image_path` column from `custom_orders` table (run after verification).
+- [x] **Database:** Create `custom_order_images` table (migration needed: `id`, `custom_order_id`, `path`, `timestamps`).
+- [x] **Model:** Create `CustomOrderImage` model (`$fillable`).
+- [x] **Model:** Add `hasMany` relationship (`images()`) from `CustomOrder` to `CustomOrderImage`.
+- [x] **Frontend (HTML):** Update file input in `custom_order.blade.php`:
+    - [x] Add `multiple` attribute.
+    - [x] Change `name` to `decoration_images[]`.
+    - [x] Add `div` for preview (`id="image-preview-container"`).
+- [x] **Frontend (JS):** In `custom_order.blade.php`:
+    - [x] Add `change` event listener to file input.
+    - [x] On change, clear preview `div`.
+    - [x] Loop through selected files (`event.target.files`).
+    - [x] Use `FileReader` to read each file.
+    - [x] Create `img` element for thumbnail and append to preview `div`.
+- [x] **Backend (`OrderController@store`):**
+    - [x] Update validation rules for `decoration_images` (array) and `decoration_images.*` (each file).
+    - [x] Check `request->hasFile('decoration_images')`.
+    - [x] Loop through `$request->file('decoration_images')`, storing each file.
+    - [x] After `CustomOrder` is saved, loop through stored paths and create associated `CustomOrderImage` records.
+    - [x] Remove old single `decoration_image_path` logic/column usage.
+- [x] **Admin View (`admin/orders/show.blade.php`):**
+    - [x] Access images via relationship (`$order->images`).
+    - [x] Loop through images and display each using `Storage::url($image->path)`.
+- [x] **Database Cleanup:** Create migration to remove `decoration_image_path` column from `custom_orders` table (run after verification).
 
 ## Remaining Tasks / Next Steps
 

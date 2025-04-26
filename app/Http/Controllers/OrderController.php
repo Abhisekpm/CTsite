@@ -13,6 +13,7 @@ use App\Models\CustomOrder; // Import the CustomOrder model
 use Illuminate\Support\Facades\Storage; // Import Storage facade for file uploads
 use Twilio\Rest\Client as TwilioClient; // Import Twilio Client
 use Twilio\Exceptions\TwilioException; // Import Twilio Exception for specific catching
+use Illuminate\Support\Facades\DB; // Import DB facade for potential transaction
 
 class OrderController extends Controller
 {
@@ -50,40 +51,51 @@ class OrderController extends Controller
             'email' => 'required|email|max:255',
             'phone' => 'required|string|max:20',
             'pickup_date' => 'required|date|after_or_equal:today',
-            'pickup_time' => 'required|date_format:H:i', // Assumes H:i format from <input type="time">
-            'eggs_ok' => ['required', Rule::in(['Yes', 'No'])], // Ensure value is Yes or No
+            'pickup_time' => 'required|date_format:H:i',
+            'eggs_ok' => ['required', Rule::in(['Yes', 'No'])],
             'allergies' => 'nullable|string',
-            'cake_size' => 'required|string|max:50', // Max length for size description
+            'cake_size' => 'required|string|max:50',
             'cake_flavor' => 'required|string|max:255',
             'message_on_cake' => 'nullable|string|max:255',
             'custom_decoration' => 'nullable|string',
-            'decoration_image' => 'nullable|image|mimes:jpeg,png,bmp,gif,svg,webp|max:2048', // Optional image, 2MB max
+            // Validation for multiple images
+            'decoration_images' => 'nullable|array', // Must be an array if present
+            'decoration_images.*' => 'image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120', // Each file: image, specific types, max 5MB
         ], [
-            // Custom validation messages (optional)
+            // Custom validation messages
             'pickup_date.after_or_equal' => 'The pickup date must be today or a future date.',
-            'decoration_image.max' => 'The inspiration photo may not be larger than 2MB.',
-            'decoration_image.image' => 'The inspiration photo must be an image file.',
-            'decoration_image.mimes' => 'The inspiration photo must be a file of type: jpeg, png, bmp, gif, svg, webp.',
+            'decoration_images.array' => 'Invalid image upload format.',
+            'decoration_images.*.image' => 'One of the uploaded files is not a valid image.',
+            'decoration_images.*.mimes' => 'Only JPG, PNG, GIF, SVG, WebP images are allowed.',
+            'decoration_images.*.max' => 'One of the uploaded images exceeds the 5MB size limit.',
         ]);
 
-        // Handle file upload if present
-        $imagePath = null;
-        if ($request->hasFile('decoration_image')) {
-            $imagePath = $request->file('decoration_image')->store('decoration_images', 'public');
-            // The path stored will be like 'decoration_images/filename.jpg' relative to the storage/app/public directory
-        }
-
-        // Add image path to validated data (if uploaded)
-        $validatedData['decoration_image_path'] = $imagePath;
+        // Remove the old single image path key if it exists in validated data (it shouldn't, but just in case)
+        unset($validatedData['decoration_image_path']); 
+        unset($validatedData['decoration_images']); // We handle images separately after saving order
 
         $order = null; // Initialize order variable
 
-        // Create and store the new order
+        // Use a database transaction to ensure order and images are saved together or not at all
+        DB::beginTransaction();
+
         try {
+            // Create the order *without* image paths initially
             $order = CustomOrder::create($validatedData);
 
-            // --- Send SMS Notifications --- 
-            if ($order) { // Proceed only if order was created successfully
+            // Handle multiple file uploads if present
+            if ($request->hasFile('decoration_images')) {
+                foreach ($request->file('decoration_images') as $file) {
+                    // Store the file in 'public/custom_orders'
+                    $path = $file->store('custom_orders', 'public');
+                    
+                    // Create associated image record
+                    $order->images()->create(['path' => $path]);
+                }
+            }
+
+            // --- Send SMS Notifications (Keep existing logic) --- 
+            if ($order) { 
                 try {
                     $twilioSid = env('TWILIO_SID');
                     $twilioToken = env('TWILIO_TOKEN');
@@ -128,12 +140,22 @@ class OrderController extends Controller
             }
             // --- End SMS Notifications --- 
 
+            // If everything worked, commit the transaction
+            DB::commit();
+
             // Redirect back with success message
             return redirect()->route('custom-order.create')->with('success', 'Thank you for your order request! We will text you shortly to confirm details and pricing.');
 
         } catch (\Exception $e) {
+            // If any error occurred, roll back the transaction
+            DB::rollBack();
+
             // Log the error
-            logger()->error("Error creating custom order: " . $e->getMessage());
+            logger()->error("Error creating custom order or saving images: " . $e->getMessage());
+            
+            // Optional: Clean up any potentially uploaded files if the transaction failed mid-way
+            // (More complex logic, might depend on specific error handling needs)
+
             // Redirect back with an error message
             return redirect()->route('custom-order.create')->with('error', 'Sorry, there was an issue submitting your order. Please try again or contact us directly.')->withInput();
         }

@@ -112,6 +112,32 @@
                 </div>
             @endif
 
+            {{-- Multiple Decoration Images (new) --}}
+            @if ($order->images && $order->images->count() > 0)
+                <div class="card mb-4">
+                    <div class="card-header">Inspiration Photos ({{ $order->images->count() }})</div>
+                    <div class="card-body">
+                        <div class="row g-2">
+                            @foreach ($order->images as $image)
+                                <div class="col-6">
+                                    <div class="position-relative">
+                                        <a href="{{ Storage::url($image->path) }}" target="_blank" title="View Full Size">
+                                            <img src="{{ Storage::url($image->path) }}" alt="Decoration Inspiration {{ $loop->iteration }}" 
+                                                class="img-fluid rounded mb-2" style="width: 100%; height: 150px; object-fit: cover;">
+                                        </a>
+                                        <div class="position-absolute bottom-0 end-0 m-2">
+                                            <a href="{{ Storage::url($image->path) }}" target="_blank" class="btn btn-sm btn-light" title="View Full Size">
+                                                View
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             {{-- Add other actions here? e.g., Mark as Confirmed Manually, Cancel Order --}}
         </div>
     </div>

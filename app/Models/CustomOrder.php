@@ -37,4 +37,12 @@ class CustomOrder extends Model
      * @var string
      */
     protected $table = 'custom_orders'; // Explicitly defining, though Laravel convention would likely find it
+
+    /**
+     * Get the images for the custom order.
+     */
+    public function images()
+    {
+        return $this->hasMany(CustomOrderImage::class);
+    }
 }
