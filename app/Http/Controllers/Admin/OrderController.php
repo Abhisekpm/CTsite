@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon; // Added Carbon for date comparison
 use Twilio\Rest\Client as TwilioClient; // Import Twilio Client
 use Twilio\Exceptions\TwilioException; // Import Twilio Exception
 use Exception; // Import base Exception
+use Illuminate\Validation\Rule; // Import Rule for validation
 
 class OrderController extends Controller
 {
@@ -140,6 +141,40 @@ class OrderController extends Controller
         } catch (Exception $e) { // Catch errors during order update itself
             logger()->error("Error updating price for order #{$order->id}: " . $e->getMessage());
             return redirect()->route('admin.orders.show', $order)->with('error', 'Failed to update order price. Please try again.')->withInput();
+        }
+    }
+
+    /**
+     * Update the specified order's details (customer name, cake details).
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\CustomOrder  $order
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function update(Request $request, CustomOrder $order)
+    {
+        // Validate the incoming request for the editable fields
+        // Removed 'required' for fields assumed to exist from initial order
+        $validated = $request->validate([
+            'customer_name' => 'sometimes|string|max:255', // Changed required to sometimes
+            'cake_size' => 'sometimes|string|max:100',        // Changed required to sometimes
+            'cake_flavor' => 'sometimes|string|max:100',     // Changed required to sometimes
+            'cake_sponge' => 'nullable|string|max:100',        // Added cake sponge validation
+            'eggs_ok' => ['sometimes', Rule::in(['Yes', 'No'])], // Changed required to sometimes
+            'message_on_cake' => 'nullable|string|max:500',
+            'allergies' => 'nullable|string|max:500',
+            'custom_decoration' => 'nullable|string|max:1000',
+        ]);
+
+        try {
+            // Update the order with validated data
+            $order->update($validated);
+
+            return redirect()->route('admin.orders.show', $order)->with('success', 'Order details updated successfully.');
+
+        } catch (Exception $e) {
+            logger()->error("Error updating details for order #{$order->id}: " . $e->getMessage());
+            return redirect()->route('admin.orders.show', $order)->with('error', 'Failed to update order details. Please try again.')->withInput();
         }
     }
 }

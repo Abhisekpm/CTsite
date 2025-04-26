@@ -11,62 +11,133 @@
     <div class="row">
         {{-- Order Details Column --}}
         <div class="col-md-7">
-            <div class="card mb-4">
-                <div class="card-header">Customer & Pickup Information</div>
-                <div class="card-body">
-                    <dl class="row mb-0">
-                        <dt class="col-sm-4">Customer Name:</dt>
-                        <dd class="col-sm-8">{{ $order->customer_name }}</dd>
+            {{-- Main form wrapping customer and cake details --}}
+            <form action="{{ route('admin.orders.update', $order) }}" method="POST">
+                @csrf
+                @method('PUT')
 
-                        <dt class="col-sm-4">Email:</dt>
-                        <dd class="col-sm-8">{{ $order->email }}</dd>
+                <div class="card mb-4"> {{-- Customer Card --}}
+                    <div class="card-header">Customer & Pickup Information</div>
+                    <div class="card-body">
+                        <dl class="row mb-0">
+                            <dt class="col-sm-4">Customer Name:</dt>
+                            <dd class="col-sm-8">
+                                <input type="text" class="form-control form-control-sm @error('customer_name') is-invalid @enderror" id="customer_name" name="customer_name" value="{{ old('customer_name', $order->customer_name) }}">
+                                @error('customer_name')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </dd>
 
-                        <dt class="col-sm-4">Phone:</dt>
-                        <dd class="col-sm-8">{{ $order->phone }}</dd>
+                            <dt class="col-sm-4">Email:</dt>
+                            <dd class="col-sm-8">{{ $order->email }}</dd>
 
-                        <dt class="col-sm-4">Pickup Date:</dt>
-                        <dd class="col-sm-8">{{ \Carbon\Carbon::parse($order->pickup_date)->format('l, F jS, Y') }}</dd>
+                            <dt class="col-sm-4">Phone:</dt>
+                            <dd class="col-sm-8">{{ $order->phone }}</dd>
 
-                        <dt class="col-sm-4">Pickup Time:</dt>
-                        <dd class="col-sm-8">{{ \Carbon\Carbon::parse($order->pickup_time)->format('h:i A') }}</dd>
+                            <dt class="col-sm-4">Pickup Date:</dt>
+                            <dd class="col-sm-8">{{ \Carbon\Carbon::parse($order->pickup_date)->format('l, F jS, Y') }}</dd>
 
-                        <dt class="col-sm-4">Submitted:</dt>
-                        <dd class="col-sm-8">{{ $order->created_at->format('M d, Y h:i A') }} ({{ $order->created_at->diffForHumans() }})</dd>
+                            <dt class="col-sm-4">Pickup Time:</dt>
+                            <dd class="col-sm-8">{{ \Carbon\Carbon::parse($order->pickup_time)->format('h:i A') }}</dd>
 
-                        <dt class="col-sm-4">Status:</dt>
-                        <dd class="col-sm-8">
-                            <span class="badge rounded-pill bg-{{ $order->status == 'pending' ? 'warning text-dark' : ($order->status == 'priced' ? 'info text-dark' : ($order->status == 'confirmed' ? 'success' : 'secondary')) }}">
-                                {{ ucfirst($order->status) }}
-                            </span>
-                        </dd>
-                    </dl>
+                            <dt class="col-sm-4">Submitted:</dt>
+                            <dd class="col-sm-8">{{ $order->created_at->format('M d, Y h:i A') }} ({{ $order->created_at->diffForHumans() }})</dd>
+
+                            <dt class="col-sm-4">Status:</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge rounded-pill bg-{{ $order->status == 'pending' ? 'warning text-dark' : ($order->status == 'priced' ? 'info text-dark' : ($order->status == 'confirmed' ? 'success' : 'secondary')) }}">
+                                    {{ ucfirst($order->status) }}
+                                </span>
+                            </dd>
+                        </dl>
+                    </div>
                 </div>
-            </div>
 
-            <div class="card mb-4">
-                <div class="card-header">Cake Details</div>
-                <div class="card-body">
-                     <dl class="row mb-0">
-                        <dt class="col-sm-4">Size:</dt>
-                        <dd class="col-sm-8">{{ $order->cake_size }}</dd>
+                <div class="card mb-4"> {{-- Cake Details Card (NOW INSIDE THE FORM) --}}
+                    <div class="card-header">Cake Details</div>
+                    <div class="card-body">
+                        <dl class="row mb-0">
+                            <dt class="col-sm-4">Size:</dt>
+                            <dd class="col-sm-8">
+                                <input type="text" class="form-control form-control-sm @error('cake_size') is-invalid @enderror" id="cake_size" name="cake_size" value="{{ old('cake_size', $order->cake_size) }}">
+                                @error('cake_size')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </dd>
 
-                        <dt class="col-sm-4">Flavor:</dt>
-                        <dd class="col-sm-8">{{ $order->cake_flavor }}</dd>
+                            <dt class="col-sm-4">Flavor:</dt>
+                            <dd class="col-sm-8">
+                                <textarea class="form-control form-control-sm @error('cake_flavor') is-invalid @enderror" id="cake_flavor" name="cake_flavor" rows="2">{{ old('cake_flavor', $order->cake_flavor) }}</textarea>
+                                 @error('cake_flavor')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                           </dd>
 
-                        <dt class="col-sm-4">Eggs Ok?</dt>
-                        <dd class="col-sm-8">{{ $order->eggs_ok }}</dd>
+                            {{-- Added Cake Sponge Field --}}
+                            <dt class="col-sm-4">Cake Sponge:</dt>
+                            <dd class="col-sm-8">
+                                {{-- Changed to select dropdown --}}
+                                <select class="form-select form-select-sm @error('cake_sponge') is-invalid @enderror" id="cake_sponge" name="cake_sponge">
+                                    <option value="" {{ old('cake_sponge', $order->cake_sponge) == '' ? 'selected' : '' }}>-- Select Sponge --</option>
+                                    @php
+                                        $spongeOptions = ['chiffon', 'eggless vanilla', 'eggless chocolate', 'mags', 'DTC', 'tres leches'];
+                                    @endphp
+                                    @foreach ($spongeOptions as $option)
+                                        <option value="{{ $option }}" {{ old('cake_sponge', $order->cake_sponge) == $option ? 'selected' : '' }}>
+                                            {{ ucfirst($option) }} {{-- Capitalize for display --}}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('cake_sponge')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </dd>
 
-                        <dt class="col-sm-4">Message on Cake:</dt>
-                        <dd class="col-sm-8">{{ $order->message_on_cake ?: '-' }}</dd>
+                            <dt class="col-sm-4">Eggs Ok?</dt>
+                            <dd class="col-sm-8">
+                                <select class="form-select form-select-sm @error('eggs_ok') is-invalid @enderror" id="eggs_ok" name="eggs_ok">
+                                    <option value="Yes" {{ old('eggs_ok', $order->eggs_ok) == 'Yes' ? 'selected' : '' }}>Yes</option>
+                                    <option value="No" {{ old('eggs_ok', $order->eggs_ok) == 'No' ? 'selected' : '' }}>No</option>
+                                </select>
+                                @error('eggs_ok')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </dd>
 
-                        <dt class="col-sm-4">Allergies:</dt>
-                        <dd class="col-sm-8">{{ $order->allergies ?: '-' }}</dd>
+                            <dt class="col-sm-4">Allergies:</dt>
+                            <dd class="col-sm-8">
+                                 {{-- Changed back to input type text --}}
+                                 <input type="text" class="form-control form-control-sm @error('allergies') is-invalid @enderror" id="allergies" name="allergies" value="{{ old('allergies', $order->allergies) }}">
+                                 @error('allergies')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                           </dd>
 
-                        <dt class="col-sm-4">Custom Decoration:</dt>
-                        <dd class="col-sm-8">{{ $order->custom_decoration ?: '-' }}</dd>
-                    </dl>
-                </div>
-            </div>
+                            <dt class="col-sm-4">Message on Cake:</dt>
+                            <dd class="col-sm-8">
+                                <textarea class="form-control form-control-sm @error('message_on_cake') is-invalid @enderror" id="message_on_cake" name="message_on_cake" rows="2">{{ old('message_on_cake', $order->message_on_cake) }}</textarea>
+                                @error('message_on_cake')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </dd>
+
+                            <dt class="col-sm-4">Custom Decoration:</dt>
+                            <dd class="col-sm-8">
+                                 <textarea class="form-control form-control-sm @error('custom_decoration') is-invalid @enderror" id="custom_decoration" name="custom_decoration" rows="2">{{ old('custom_decoration', $order->custom_decoration) }}</textarea>
+                                 @error('custom_decoration')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </dd>
+                        </dl>
+
+                        {{-- Single Save Button for the customer info + cake details form --}}
+                        <div class="mt-3 text-end">
+                            <button type="submit" class="btn btn-success">Save Order Details</button>
+                        </div>
+                    </div> {{-- End Cake Details card-body --}}
+                </div> {{-- End Cake Details card --}}
+
+            </form> {{-- End Main Form --}}
         </div>
 
         {{-- Pricing & Action Column --}}

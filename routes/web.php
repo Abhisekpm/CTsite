@@ -225,6 +225,7 @@ Route::group(['middleware' => ['auth:admin'], 'prefix' => 'admin'], function () 
         Route::get('/', 'index')->name('index'); // admin.orders.index -> GET /admin/orders
         Route::get('/{order}', 'show')->name('show'); // admin.orders.show -> GET /admin/orders/{order}
         Route::patch('/{order}/update-price', 'updatePrice')->name('updatePrice'); // admin.orders.updatePrice -> PATCH /admin/orders/{order}/update-price
+        Route::put('/{order}', 'update')->name('update'); // admin.orders.update -> PUT /admin/orders/{order}
         // Add other routes later if needed (e.g., delete, change status manually)
     });
 });

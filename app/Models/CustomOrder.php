@@ -22,6 +22,7 @@ class CustomOrder extends Model
         'pickup_time',
         'cake_size',
         'cake_flavor',
+        'cake_sponge',
         'eggs_ok',
         'message_on_cake',
         'custom_decoration',

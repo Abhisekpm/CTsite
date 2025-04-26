@@ -84,6 +84,7 @@ This list tracks the implementation steps for the custom cake order form and con
 - [x] Create Blade Views for Admin:
     - [x] Order list view.
     - [x] Order detail view with pricing form.
+    - [x] Make specific fields editable on detail view (name, size, flavor, eggs, message, decorations, allergies).
 - [x] Add links to admin sidebar.
 
 ## Twilio Webhook for SMS Replies

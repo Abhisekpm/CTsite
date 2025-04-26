@@ -62,6 +62,7 @@
                 <table class="table table-hover table-striped mb-0">
                     <thead class="table-light">
                         <tr>
+                            <th>#ID</th>
                             <th>Customer Name</th>
                             <th>Cake Size</th>
                             <th>Cake Flavor</th>
@@ -74,6 +75,7 @@
                     <tbody>
                         @forelse ($orders as $order)
                             <tr class="border-bottom">
+                                <td data-label="ID">{{ $order->id }}</td>
                                 <td data-label="Customer">{{ $order->customer_name }}</td>
                                 <td data-label="Size">{{ $order->cake_size }}</td>
                                 <td data-label="Flavor">{{ $order->cake_flavor }}</td>
@@ -91,7 +93,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center text-muted">No orders found.</td>
+                                <td colspan="8" class="text-center text-muted">No orders found.</td>
                             </tr>
                         @endforelse
                     </tbody>
