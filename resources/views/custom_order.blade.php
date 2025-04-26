@@ -100,27 +100,47 @@
                                             <div id="phone_js_error" class="invalid-feedback"></div>
                                             {{-- Add Opt-in Text --}}
                                             <small class="form-text text-muted">
-                                                By providing your phone number, you agree to receive text message notifications about your order status. Message & data rates may apply.
+                                                (By providing your phone number, you agree to receive text message notifications about your order status)
                                             </small>
                                         </div>
                                     </div>
                                     {{-- Pickup Date --}}
                                     <div class="col-md-6">
-                                        <div class="form-floating date" id="date3" data-target-input="nearest">
-                                            <input type="date" class="form-control @error('pickup_date') is-invalid @enderror" id="pickup_date" name="pickup_date" placeholder="Pickup Date" value="{{ old('pickup_date') }}" required />
-                                            <label for="pickup_date">Date of Cake Pickup</label>
+                                        {{-- Wrapper for Tempus Dominus --}}
+                                        <div class="input-group" id="pickup_date_picker" data-td-target-input="nearest" data-td-target-toggle="nearest">
+                                            <input type="text" {{-- Changed type to text --}}
+                                                class="form-control @error('pickup_date') is-invalid @enderror" 
+                                                id="pickup_date" 
+                                                name="pickup_date" 
+                                                placeholder="Select Pickup Date" 
+                                                value="{{ old('pickup_date') }}" 
+                                                data-td-target="#pickup_date_picker" 
+                                                required />
+                                            <span class="input-group-text" data-td-target="#pickup_date_picker" data-td-toggle="datetimepicker">
+                                                <i class="fas fa-calendar"></i>
+                                            </span>
                                             @error('pickup_date') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
-                                            <div id="pickup_date_js_error" class="text-danger small mt-1"></div>
                                         </div>
+                                        <div id="pickup_date_js_error" class="text-danger small mt-1"></div>
                                     </div>
                                     {{-- Pickup Time --}}
                                     <div class="col-md-6">
-                                        <div class="form-floating">
-                                            <input type="text" class="form-control @error('pickup_time') is-invalid @enderror" id="pickup_time" name="pickup_time" placeholder="Time of Pickup" value="{{ old('pickup_time') }}" required>
-                                            <label for="pickup_time">Time of Pickup (11am - 7pm)</label>
+                                        {{-- Wrapper for Tempus Dominus --}}
+                                        <div class="input-group" id="pickup_time_picker" data-td-target-input="nearest" data-td-target-toggle="nearest">
+                                            <input type="text" 
+                                                class="form-control @error('pickup_time') is-invalid @enderror" 
+                                                id="pickup_time" 
+                                                name="pickup_time" 
+                                                placeholder="Select Pickup Time (11am-7pm)" 
+                                                value="{{ old('pickup_time') }}" 
+                                                data-td-target="#pickup_time_picker" 
+                                                required>
+                                            <span class="input-group-text" data-td-target="#pickup_time_picker" data-td-toggle="datetimepicker">
+                                                <i class="fas fa-clock"></i>
+                                            </span>
                                             @error('pickup_time') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
-                                            <div id="pickup_time_js_error" class="text-danger small mt-1"></div>
                                         </div>
+                                        <div id="pickup_time_js_error" class="text-danger small mt-1"></div>
                                     </div>
                                     {{-- Eggs Ok? --}}
                                     <div class="col-md-6">
@@ -555,52 +575,45 @@ document.addEventListener('DOMContentLoaded', function () {
         return true;
     }
     
-    // --- End Flatpickr Initialization ---
+    // --- Initialize Tempus Dominus --- 
+    const pickupDatePickerEl = document.getElementById('pickup_date_picker');
+    if (pickupDatePickerEl) {
+        const threeDaysFromNow = new Date();
+        threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
 
-    // --- Initialize Flatpickr for Pickup Time ---
-    const pickupTimeInput = document.getElementById('pickup_time');
-    if (pickupTimeInput) {
-        flatpickr(pickupTimeInput, {
-            enableTime: true,
-            noCalendar: true,
-            dateFormat: "H:i", // Backend format
-            altInput: true,
-            altFormat: "h:i K", // Display Format (e.g., 02:30 PM)
-            minuteIncrement: 15,
-            minTime: "11:00",
-            maxTime: "19:00",
-             // Optional: Add onChange handler if needed
-             onChange: function(selectedDates, dateStr, instance) {
-                 validateRequired(instance.input);
-                 clearError(instance.input.id);
-             }
+        new tempusDominus.TempusDominus(pickupDatePickerEl, {
+            localization: {
+                format: 'yyyy-MM-dd', 
+                locale: 'en-US'
+            },
+            display: {
+                icons: { time: 'fas fa-clock', date: 'fas fa-calendar', up: 'fas fa-chevron-up', down: 'fas fa-chevron-down', previous: 'fas fa-chevron-left', next: 'fas fa-chevron-right', today: 'fas fa-calendar-check', clear: 'fas fa-trash', close: 'fas fa-times' },
+                buttons: { today: true, clear: false, close: true },
+                components: { calendar: true, date: true, month: true, year: true, decades: true, clock: false, hours: false, minutes: false, seconds: false }
+            },
+            restrictions: {
+                minDate: threeDaysFromNow, 
+                daysOfWeekDisabled: [1] // Disable Mondays
+            }
         });
     }
-    // --- End Flatpickr Initialization ---
 
-    // --- Remove or Comment Out Old Time Validation Logic ---
-    /* 
-    const pickupTimeInput_OLD = document.getElementById('pickup_time');
-     if (pickupTimeInput_OLD) {
-         // Removed listener, Flatpickr handles min/max/increment
-         // pickupTimeInput_OLD.addEventListener('change', () => validateTimeRange(pickupTimeInput_OLD));
+    const pickupTimePickerEl = document.getElementById('pickup_time_picker');
+    if (pickupTimePickerEl) {
+        new tempusDominus.TempusDominus(pickupTimePickerEl, {
+            localization: { format: 'HH:mm', locale: 'en-US' },
+            display: {
+                 icons: { time: 'fas fa-clock', date: 'fas fa-calendar', up: 'fas fa-chevron-up', down: 'fas fa-chevron-down', previous: 'fas fa-chevron-left', next: 'fas fa-chevron-right', today: 'fas fa-calendar-check', clear: 'fas fa-trash', close: 'fas fa-times' },
+                 buttons: { today: false, clear: false, close: true },
+                 components: { calendar: false, date: false, month: false, year: false, decades: false, clock: true, hours: true, minutes: true, seconds: false }
+            },
+            restrictions: {
+                 enabledHours: Array.from({length: 19 - 11 + 1}, (_, i) => 11 + i) // Hours 11-19
+            },
+            stepping: 15
+        });
     }
-    */
-    // --- End Old Time Validation Logic ---
-
-    // --- Remove or Comment Out Old Date Validation Logic ---
-    // ... existing code ...
-
-    // --- Remove or Comment Out validateTimeRange Function ---
-    /*
-    function validateTimeRange(inputElement) {
-        // ... old validation logic ...
-    }
-    */
-    // --- End Remove validateTimeRange ---
-
-    // --- Remove or Comment Out validateDateRange Function ---
-    // ... existing code ...
+    // --- End Tempus Dominus Initialization ---
 
     // --- Tab Validation Function ---
     function validateTab(tabIndex) {
@@ -652,30 +665,7 @@ document.addEventListener('DOMContentLoaded', function () {
     form.querySelectorAll('select[required]').forEach(select => {
         select.addEventListener('change', () => validateSelect(select));
     });
-     // Specific listeners for date/time range validation (keeping existing logic structure)
-     const pickupDateInput = document.getElementById('pickup_date');
-     if (pickupDateInput) {
-        flatpickr(pickupDateInput, {
-            altInput: true, // Show a user-friendly format
-            altFormat: "F j, Y", // Format for display (e.g., April 26, 2025)
-            dateFormat: "Y-m-d", // Format for the actual input value (for backend)
-            minDate: new Date().fp_incr(3), // Minimum date is 3 days from today
-            disable: [
-                function(date) {
-                    // Disable Mondays (day 1)
-                    return (date.getDay() === 1);
-                }
-            ],
-            // Optional: Add onChange handler if needed for further JS logic
-            onChange: function(selectedDates, dateStr, instance) {
-                 // Trigger validation if needed, although disabled dates prevent selection
-                 validateRequired(instance.input);
-                 clearError(instance.input.id); // Clear any previous JS errors on valid selection
-            }
-        });
-    }
-     // ... existing code ...
-
+    
     // Tab Navigation
     function getCurrentTabIndex() {
         return Array.from(tabTriggers).findIndex(trigger => trigger.classList.contains('active'));

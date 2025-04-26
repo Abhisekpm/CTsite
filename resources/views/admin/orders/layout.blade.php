@@ -71,7 +71,7 @@
 <body>
     <div class="container">
         <header class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
-            <h1 class="h4">Custom Order Management</h1>
+            <h1 class="h4">Cake Order Management</h1>
             {{-- Basic Logout Link - Assumes admin logout route is named 'logout' --}}
             @auth('admin')
                 <form method="POST" action="{{ route('logout') }}"> {{-- Adjust route name if needed --}}

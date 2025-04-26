@@ -125,7 +125,7 @@ Route::group(['middleware' => ['auth:admin'], 'prefix' => 'admin'], function () 
     });
 
     Route::controller(LoginController::class)->group(function () {
-        Route::get('/logout', 'logout')->name('logout');
+        Route::post('/logout', 'logout')->name('logout');
     });
     
     // ----------------------------- user controller -------------------------//

@@ -2,6 +2,12 @@
     <div class="sidebar-inner slimscroll">
         <div id="sidebar-menu" class="sidebar-menu">
             <ul>
+                <li class="{{set_active(['admin/orders', 'admin/orders/*'])}}">
+                    <a href="{{ route('admin.orders.index') }}">
+                        <i class="fas fa-birthday-cake"></i>
+                        <span>Cake Orders</span>
+                    </a>
+                </li>
                 <li class="{{set_active(['admin'])}}">
                     <a href="{{ route('admin.home') }}">
                         <i class="fas fa-tachometer-alt"></i>
@@ -30,12 +36,6 @@
                     <a href="{{ route('menu-category') }}">
                         <i class="fas fa-envelope"></i>
                         <span>Menu Category</span>
-                    </a>
-                </li>
-                <li class="{{set_active(['admin/orders', 'admin/orders/*'])}}">
-                    <a href="{{ route('admin.orders.index') }}">
-                        <i class="fas fa-receipt"></i>
-                        <span>Custom Orders</span>
                     </a>
                 </li>
                 <li class="{{set_active(['admin/comments'])}}">

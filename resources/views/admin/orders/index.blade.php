@@ -1,14 +1,13 @@
 @extends('admin.orders.layout')
 
-@section('title', 'Custom Order List')
+@section('title', 'Cake Order List')
 
 @section('content')
-    <h2 class="mb-4">Custom Cake Orders</h2>
+    <h2 class="mb-4">List of Cake Orders</h2>
 
     {{-- Status Filter Buttons --}}
     <div class="mb-3">
-        <span class="me-2">Filter by status:</span>
-        <div class="btn-group btn-group-sm" role="group" aria-label="Order Status Filter">
+       <div class="btn-group btn-group-sm" role="group" aria-label="Order Status Filter">
             <a href="{{ route('admin.orders.index') }}" 
                class="btn {{ !$currentStatus ? 'btn-primary' : 'btn-outline-primary' }}">
                 All
@@ -30,29 +29,29 @@
     </div>
     {{-- End Status Filter Buttons --}}
 
-    {{-- Future Orders Toggle --}}
+    {{-- Future Orders Toggle (Improved) --}}
     <div class="mb-3">
-        @php
-            // Build the base query parameters, preserving the status filter if present
-            $queryParams = request()->only('status');
-            $futureFilterActive = request()->query('filter') === 'future';
+         <div class="btn-group btn-group-sm" role="group" aria-label="Order Date Filter">
+            @php
+                $statusParams = request()->only('status'); // Preserve status filter
+                $futureFilterActive = request()->query('filter') === 'future';
 
-            // If the future filter is active, the link should remove it
-            if ($futureFilterActive) {
-                // No need to add 'filter' => 'future' to the toggle link
-                $toggleText = 'Show All Orders';
-                $toggleClass = 'btn-secondary'; 
-            } else {
-                // If the future filter is *not* active, the link should add it
-                $queryParams['filter'] = 'future';
-                $toggleText = 'Show Only Future Orders';
-                $toggleClass = 'btn-outline-secondary';
-            }
-        @endphp
-        <a href="{{ route('admin.orders.index', $queryParams) }}" 
-           class="btn btn-sm {{ $toggleClass }}">
-            {{ $toggleText }}
-        </a>
+                $allOrdersParams = $statusParams; // Base params for "All"
+                $futureOrdersParams = array_merge($statusParams, ['filter' => 'future']); // Add 'filter' for "Future"
+            @endphp
+
+            {{-- All Orders Button --}}
+            <a href="{{ route('admin.orders.index', $allOrdersParams) }}" 
+               class="btn {{ !$futureFilterActive ? 'btn-primary' : 'btn-outline-primary' }}">
+               All Orders
+            </a>
+
+            {{-- Future Orders Button --}}
+            <a href="{{ route('admin.orders.index', $futureOrdersParams) }}" 
+               class="btn {{ $futureFilterActive ? 'btn-primary' : 'btn-outline-primary' }}">
+               Future Orders
+            </a>
+        </div>
     </div>
     {{-- End Future Orders Toggle --}}
 

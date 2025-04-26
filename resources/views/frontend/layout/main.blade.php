@@ -23,8 +23,11 @@
   gtag('config', 'UA-261673956-1');
 </script>
 
-    {{-- Flatpickr CSS --}}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    {{-- Flatpickr CSS (Commented Out) --}}
+    {{-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"> --}}
+
+    {{-- Added Tempus Dominus CSS --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@6.9.4/dist/css/tempus-dominus.min.css" crossorigin="anonymous">
 
     @stack('styles') {{-- Added stack for page-specific styles --}}
 </head>
@@ -150,8 +153,12 @@
 
         @include('frontend.layout.script')
 
-        {{-- Flatpickr JS --}}
-        <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        {{-- Flatpickr JS (Commented Out) --}}
+        {{-- <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script> --}}
+
+        {{-- Added Tempus Dominus JS (Requires Popper) --}}
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@6.9.4/dist/js/tempus-dominus.min.js" crossorigin="anonymous"></script>
 
         @stack('scripts')
 
