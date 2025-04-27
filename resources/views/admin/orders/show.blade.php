@@ -172,6 +172,33 @@
                 </div>
             </div>
 
+            {{-- Manual Actions Card --}}
+            <div class="card mb-4">
+                <div class="card-header">Manual Actions</div>
+                <div class="card-body text-center"> 
+                    {{-- Confirm Button --}}
+                    @if($order->status == 'priced')
+                        <form action="{{ route('admin.orders.confirm', $order) }}" method="POST" class="d-inline-block me-2">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit" class="btn btn-success">Confirm Order</button>
+                        </form>
+                    @endif
+
+                    {{-- Cancel Button --}}
+                    @if(!in_array($order->status, ['confirmed', 'cancelled']))
+                        <form action="{{ route('admin.orders.cancel', $order) }}" method="POST" class="d-inline-block">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to cancel this order?')">Cancel Order</button>
+                        </form>
+                     @else
+                         {{-- Show info if already completed/cancelled --}}
+                         <p class="text-muted mb-0">Order is already {{ $order->status }}.</p>
+                    @endif
+                </div>
+            </div>
+
             {{-- Decoration Image --}}
             @if ($order->decoration_image_path)
                 <div class="card mb-4">

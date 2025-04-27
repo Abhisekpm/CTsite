@@ -162,7 +162,11 @@
 
         @stack('scripts')
 
+{{-- Only load Popupsmart chat on contact page --}}
+@if (request()->is('contact-us')) 
 <script type="text/javascript" src="https://popupsmart.com/freechat.js"></script><script> window.start.init({ title: "Hi there ✌️", message: "How may we help you? Just send us a message now to get assistance.", color: "#90D6E2", position: "left", placeholder: "Enter your message", withText: "Write with", viaWhatsapp: "Or write us directly via Whatsapp", gty: "Go to your", awu: "and write us", connect: "Connect now",  button: "Write us", device: "everywhere", logo: "https://d2r80wdbkwti6l.cloudfront.net/ZhPxyaBmxpVmubBCCVq8Bmg9TjXWIwUy.jpg",  services: [{"name":"whatsapp","content":"+12675418620"},{"name":"phone","content":"+12675418620"}]})</script>
+@endif
+
 </body>
 
 </html>

@@ -177,4 +177,50 @@ class OrderController extends Controller
             return redirect()->route('admin.orders.show', $order)->with('error', 'Failed to update order details. Please try again.')->withInput();
         }
     }
+
+    /**
+     * Manually confirm an order.
+     *
+     * @param  \App\Models\CustomOrder  $order
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function confirmOrder(CustomOrder $order)
+    {
+        if ($order->status !== 'priced') {
+            return redirect()->route('admin.orders.show', $order)->with('error', 'Order cannot be confirmed unless status is priced.');
+        }
+
+        try {
+            $order->status = 'confirmed';
+            $order->save();
+            // Optionally: Trigger any admin/customer notifications for manual confirmation?
+            return redirect()->route('admin.orders.show', $order)->with('success', 'Order manually marked as confirmed.');
+        } catch (Exception $e) {
+            logger()->error("Error manually confirming order #{$order->id}: " . $e->getMessage());
+            return redirect()->route('admin.orders.show', $order)->with('error', 'Failed to confirm order.');
+        }
+    }
+
+    /**
+     * Manually cancel an order.
+     *
+     * @param  \App\Models\CustomOrder  $order
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function cancelOrder(CustomOrder $order)
+    {
+        if (in_array($order->status, ['confirmed', 'cancelled'])) {
+             return redirect()->route('admin.orders.show', $order)->with('error', 'Order is already confirmed or cancelled.');
+        }
+
+        try {
+            $order->status = 'cancelled';
+            $order->save();
+             // Optionally: Trigger any admin/customer notifications for manual cancellation?
+            return redirect()->route('admin.orders.show', $order)->with('success', 'Order manually marked as cancelled.');
+        } catch (Exception $e) {
+            logger()->error("Error manually cancelling order #{$order->id}: " . $e->getMessage());
+            return redirect()->route('admin.orders.show', $order)->with('error', 'Failed to cancel order.');
+        }
+    }
 }
