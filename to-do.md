@@ -130,83 +130,122 @@ This list tracks the implementation steps for the custom cake order form and con
 
 ## Deployment to GoDaddy/cPanel
 
-This plan outlines the steps to replace the existing live site with the current local/GitHub version and replace the live database.
+Revised Deployment Sequence
+1. Preparation & Local Build
 
-**WARNING:** Proceed with caution. Back up your live site files and database *before* starting. These steps involve deleting live data.
+Backup live files & DB.
 
-**Phase 1: Preparation**
+Commit all local changes to Git.
 
-- [ ] **Backup Live Site:**
-    - [ ] Files: Use cPanel File Manager (Compress `public_html` or relevant directory) or Backup Wizard.
-    - [ ] Database: Use cPanel phpMyAdmin to export the current live database as an SQL file.
-- [ ] **Backup Local Database:** Export your local development database as an SQL file.
-- [ ] **Verify PHP Version:** Check cPanel MultiPHP Manager matches your Laravel requirement.
-- [ ] **Check PHP Extensions:** Ensure required extensions are enabled in cPanel "Select PHP Version".
-- [ ] **Commit Local Code:** Ensure all local changes are committed to Git.
+Locally run:
 
-**Phase 2: Database Deployment**
+bash
+Copy
+Edit
+npm install
+npm run build
+composer install --optimize-autoloader --no-dev
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+Commit your built public/build (or compiled assets) to Git.
 
-- [ ] **Export Local DB:** Export your final local database again as an `.sql` file (e.g., using phpMyAdmin, Sequel Pro, `mysqldump`).
-- [ ] **Clear Live DB:** Using cPanel phpMyAdmin, select the live database and **DROP** all existing tables (ensure you have the backup!).
-- [ ] **Import Local DB:** Using cPanel phpMyAdmin, select the live database and use the **Import** tab to upload and execute the `.sql` file exported from your local machine.
-    - *Note: For large databases, cPanel import might time out. You may need to split the SQL file or use SSH if available.* 
+2. Put Site into Maintenance Mode
 
-**Phase 3: Code Deployment**
+If you have SSH:
 
-- [ ] **Choose Method:** Decide how to upload files (cPanel File Manager, FTP/SFTP client like FileZilla, or `git clone` via SSH if available).
-- [ ] **Clear Live Files (Carefully):** 
-    - Using File Manager or FTP/SFTP, delete the contents of your existing website directory (often `public_html`, but **confirm your domain's document root**).
-    - **Do NOT delete the `public_html` folder itself unless your Laravel project root will become the new document root (less common).**
-- [ ] **Upload Project Files:**
-    - **Method 1 (No SSH):** Upload your *entire* local project folder (except maybe `node_modules`) via FTP/SFTP or File Manager zip upload. Place it *outside* `public_html` (e.g., in your home directory `/home/your_cpanel_user/your_laravel_app`). Upload your local `vendor` folder if you cannot run composer on the server.
-    - **Method 2 (SSH):** Navigate to the directory *outside* `public_html` via SSH and clone your repository: `git clone your_repo_url.git your_laravel_app`.
+bash
+Copy
+Edit
+php artisan down
 
-**Phase 4: Configuration**
 
-- [ ] **Configure `.env` File:**
-    - Copy your local `.env.example` to `.env` **on the server** (or upload your local `.env` and **immediately edit it**).
-    - **Crucially, update `.env` with:**
-        - `APP_NAME`, `APP_URL` (your live domain)
-        - `APP_ENV=production`
-        - `APP_DEBUG=false`
-        - **Live** Database connection details (`DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` - find these in cPanel "MySQL Databases").
-        - Mail driver settings, Twilio keys, any other production API keys.
-    - **DO NOT USE YOUR LOCAL DATABASE DETAILS OR `APP_DEBUG=true` IN PRODUCTION.**
-- [ ] **Set Document Root:**
-    - Using cPanel "Domains" or "Subdomains", ensure the **Document Root** for your domain points to the `public` directory inside your uploaded Laravel project (e.g., `/home/your_cpanel_user/your_laravel_app/public`).
-    - *Alternative (Less Ideal):* If you uploaded inside `public_html`, you might need to configure `.htaccess` - consult Laravel deployment docs.
-- [ ] **Storage Link:**
-    - **Method 1 (SSH):** Navigate to your Laravel project root via SSH and run `php artisan storage:link`.
-    - **Method 2 (No SSH):** You may need to manually create a symbolic link from `public/storage` to `storage/app/public` using cPanel File Manager (if it allows symlinks) or adjust file upload paths/disk configurations.
+3. Database Prep
 
-**Phase 5: Dependencies & Optimizations**
+In cPanel → MySQL® Databases, verify (or recreate) your live database & user.
 
-- [ ] **Install Composer Dependencies (if not uploaded):**
-    - **Method 1 (SSH):** Navigate to project root via SSH and run `composer install --optimize-autoloader --no-dev`.
-    - **Method 2 (No SSH):** Ensure you uploaded the correct `vendor` directory from your local machine (matching the server PHP version).
-- [ ] **Set Permissions:** Using cPanel File Manager or SSH (`chmod`), ensure the `storage` and `bootstrap/cache` directories are writable by the web server (e.g., permissions `775`).
-- [ ] **Run Artisan Optimization Commands (Highly Recommended):**
-    - **Method 1 (SSH):** Run these commands:
-        - `php artisan config:cache`
-        - `php artisan route:cache`
-        - `php artisan view:cache`
-        - `php artisan optimize` (Combines the above)
-        - `php artisan migrate --force` (If you have *new* migrations since the DB import - use with caution)
-    - **Method 2 (No SSH):** You may need to skip these, or run them locally *before* uploading (less ideal, paths might differ).
-- [ ] **Clear Caches (if needed):**
-    - `php artisan cache:clear`
-    - `php artisan config:clear`
-    - `php artisan route:clear`
-    - `php artisan view:clear`
+In cPanel → phpMyAdmin, DROP or truncate all tables in the live DB (you’ve already backed up).
 
-**Phase 6: Testing**
 
-- [ ] **Browse Live Site:** Open your website in a browser.
-- [ ] **Test Core Features:** Check logins, forms (contact, custom order), menu display, admin panel access.
-- [ ] **Check for Errors:** Look for any visual errors or Laravel error pages.
-- [ ] **Check Logs:** Check `storage/logs/laravel.log` via File Manager or SSH for any server-side errors.
+4. Code Deployment
 
-**Phase 7: Post-Deployment**
+Clear out your public_html directory contents (but keep the folder).
 
-- [ ] **Monitor:** Keep an eye on the site and logs for a while.
-- [ ] **Cron Jobs:** If your application needs scheduled tasks, set them up using cPanel "Cron Jobs".
+Via SSH/Git (preferred):
+
+bash
+Copy
+Edit
+cd ~
+git clone git@github.com:you/your_repo.git your_laravel_app
+Or via SFTP/File Manager: upload your zipped project and extract.
+
+
+5. Environment & Storage
+
+Copy or upload your .env to ~/your_laravel_app/.env.
+
+Edit it with your live domain, DB_* creds, APP_ENV=production, APP_DEBUG=false, API keys, mail settings, etc.
+
+In that same folder, run (SSH/cPanel Terminal):
+
+bash
+Copy
+Edit
+php artisan storage:link
+
+
+6. Import Local Database
+
+In cPanel → phpMyAdmin, select your live database → Import → choose your local-exported .sql → Go.
+
+
+
+7. Server-Side Dependencies & Caching
+
+SSH into ~/your_laravel_app:
+
+bash
+Copy
+Edit
+composer install --optimize-autoloader --no-dev
+Permissions:
+
+bash
+Copy
+Edit
+chmod -R 775 storage bootstrap/cache
+chown -R your_cpanel_user:your_cpanel_user storage bootstrap/cache
+Caches & optimization:
+
+bash
+Copy
+Edit
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+Optional: only if you have new migrations since your SQL dump:
+
+bash
+Copy
+Edit
+php artisan migrate --force
+Finalize & Test
+
+
+8. Exit maintenance mode:
+
+bash
+Copy
+Edit
+php artisan up
+Visit your site, click through key pages, forms, admin, etc.
+
+Tail your logs (storage/logs/laravel.log) for any errors.
+
+
+9. Cleanup
+
+Remove any stray backup zips or SQL dumps from your server.
+
+Confirm your cron jobs (if you have scheduled tasks) are still in place.
