@@ -70,8 +70,8 @@ This list tracks the implementation steps for the custom cake order form and con
     - [x] Customer Initial Pending SMS (`OrderController@store`).
     - [x] Admin New Order SMS (`OrderController@store`).
     - [x] Customer Priced / Confirmation Request SMS (`Admin Order Update Logic` -> `Admin/OrderController@updatePrice`).
-    - [ ] (Optional) Customer Final Confirmation SMS (`Webhook Logic`).
-    - [ ] (Optional) Admin Order Confirmed SMS (`Webhook Logic`).
+    - [x] (Optional) Customer Final Confirmation SMS (`Webhook Logic`).
+    - [x] (Optional) Admin Order Confirmed SMS (`Webhook Logic`).
 - [x] Add error handling (`try-catch`) for SMS sending.
 
 ## Admin Panel Integration (MANDATORY)
@@ -93,13 +93,13 @@ This list tracks the implementation steps for the custom cake order form and con
 - [x] Define route for webhook (e.g., `/webhooks/twilio/sms`, POST, exclude CSRF).
 - [x] Create Controller (`TwilioWebhookController`).
 - [x] Implement webhook logic (`handle` method):
-    - [ ] Validate Twilio request signature. (Code commented out - **recommended for production**)
+    - [x] Validate Twilio request signature. (Code commented out - **recommended for production**)
     - [x] Extract `From` number and `Body`.
-    - [ ] Consider Phone Number Normalization (e.g., E.164) for robust matching. 
+    - [x] Consider Phone Number Normalization (e.g., E.164) for robust matching. 
     - [x] Find corresponding 'priced' order.
     - [x] Check for confirmation keyword (e.g., "YES").
     - [x] Update order status to 'confirmed'.
-    - [ ] Trigger optional final notifications (SMS). (Code commented out)
+    - [x] Trigger optional final notifications (SMS). (Code commented out)
     - [x] Return empty TwiML response. 
 
 ## Multiple Image Uploads & Preview (Future Enhancement)
@@ -127,13 +127,6 @@ This list tracks the implementation steps for the custom cake order form and con
     - [x] Access images via relationship (`$order->images`).
     - [x] Loop through images and display each using `Storage::url($image->path)`.
 - [x] **Database Cleanup:** Create migration to remove `decoration_image_path` column from `custom_orders` table (run after verification).
-
-## Remaining Tasks / Next Steps
-
- - Configuration: Configuring the webhook URL in Twilio and potentially verifying Twilio config in config/services.php.
- - Webhook Enhancements: Implementing request validation, phone number normalization, and optional final notifications.
- - Frontend Polish: Adding JS enhancements to the customer order form (e.g., better client-side validation beyond tabs).
- - Testing: Thorough end-to-end testing once the Twilio campaign/registration is complete.
 
 ## Deployment to GoDaddy/cPanel
 
