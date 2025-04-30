@@ -14,6 +14,10 @@ use Illuminate\Support\Facades\Storage; // Import Storage facade for file upload
 use Twilio\Rest\Client as TwilioClient; // Import Twilio Client
 use Twilio\Exceptions\TwilioException; // Import Twilio Exception for specific catching
 use Illuminate\Support\Facades\DB; // Import DB facade for potential transaction
+use libphonenumber\PhoneNumberUtil;
+use libphonenumber\PhoneNumberFormat;
+use libphonenumber\NumberParseException;
+use Illuminate\Validation\ValidationException; // Needed to throw validation error
 
 class OrderController extends Controller
 {
@@ -64,15 +68,47 @@ class OrderController extends Controller
         ], [
             // Custom validation messages
             'pickup_date.after_or_equal' => 'The pickup date must be today or a future date.',
+            'phone.invalid' => 'Please provide a valid phone number.',
             'decoration_images.array' => 'Invalid image upload format.',
             'decoration_images.*.image' => 'One of the uploaded files is not a valid image.',
             'decoration_images.*.mimes' => 'Only JPG, PNG, GIF, SVG, WebP images are allowed.',
             'decoration_images.*.max' => 'One of the uploaded images exceeds the 5MB size limit.',
         ]);
 
+        // --- ADD BACK: Normalize Phone Number ---
+        $rawPhoneNumber = $validatedData['phone'];
+        try {
+            $phoneUtil = PhoneNumberUtil::getInstance();
+            // Assuming US as the default region if the number isn't already international
+            $parsedNumber = $phoneUtil->parse($rawPhoneNumber, 'US');
+
+            if ($phoneUtil->isValidNumber($parsedNumber)) {
+                // Update the validated data with the E.164 format
+                $validatedData['phone'] = $phoneUtil->format($parsedNumber, PhoneNumberFormat::E164);
+            } else {
+                // Throw a validation exception if the number is not valid
+                throw ValidationException::withMessages([
+                    'phone' => __('Please provide a valid phone number.'), // Use translation helper
+                ]);
+            }
+        } catch (NumberParseException $e) {
+            // Also throw validation exception if parsing fails
+             throw ValidationException::withMessages([
+                'phone' => __('Please provide a valid phone number.'), // Use translation helper
+            ]);
+        } catch (ValidationException $e) {
+            // Re-throw validation exceptions specifically
+            throw $e;
+        } catch (\Exception $e) {
+            // Catch any other unexpected errors during normalization
+            logger()->error("Unexpected error normalizing phone number {$rawPhoneNumber}: " . $e->getMessage());
+            // Redirect back with a generic error (or re-throw validation)
+            return redirect()->route('custom-order.create')->with('error', 'An unexpected error occurred processing your phone number.')->withInput();
+        }
+        // --- End Normalize Phone Number ---
+
         // Remove the old single image path key if it exists in validated data (it shouldn't, but just in case)
-        unset($validatedData['decoration_image_path']); 
-        unset($validatedData['decoration_images']); // We handle images separately after saving order
+        unset($validatedData['decoration_image_path']);
 
         $order = null; // Initialize order variable
 
@@ -101,7 +137,7 @@ class OrderController extends Controller
                     $twilioToken = env('TWILIO_TOKEN');
                     $twilioFrom = env('TWILIO_FROM');
                     $adminPhone = env('ADMIN_PHONE');
-                    $customerPhone = $order->phone; // Make sure phone number format matches Twilio requirements (E.164 recommended)
+                    $customerPhone = $order->phone; // Use the NOW NORMALIZED phone number from the order
 
                     if ($twilioSid && $twilioToken && $twilioFrom && $adminPhone && $customerPhone) {
                         $twilio = new TwilioClient($twilioSid, $twilioToken);

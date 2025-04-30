@@ -56,7 +56,7 @@ class TwilioWebhookController extends Controller
             return response($twiml, 200)->header('Content-Type', 'text/xml');
         }
 
-        // --- Normalize Phone Number --- 
+        // --- ADD BACK: Normalize Phone Number ---
         $normalizedFromNumber = null;
         try {
             $phoneUtil = PhoneNumberUtil::getInstance();
@@ -69,6 +69,8 @@ class TwilioWebhookController extends Controller
             } else {
                  Log::warning("Twilio Webhook: Could not parse/validate incoming phone number: {$fromNumber}");
                  // Use raw number as fallback or decide to reject
+                 // Setting to raw number here, but the query below should ideally only match E164
+                 // Consider returning an error or ignoring if validation fails strictly
                  $normalizedFromNumber = $fromNumber; 
             }
         } catch (NumberParseException $e) {
@@ -76,20 +78,23 @@ class TwilioWebhookController extends Controller
              // Use raw number as fallback
             $normalizedFromNumber = $fromNumber;
         }
-        Log::info("Twilio Webhook: Normalized number {$fromNumber} to {$normalizedFromNumber}");
-        // --- End Normalize Phone Number --- 
+        Log::info("Twilio Webhook: Processing number {$fromNumber} (attempted normalization to {$normalizedFromNumber})");
+        // --- End Normalize Phone Number ---
 
-        // Attempt to find a 'priced' order matching the normalized sender's number
+        // Attempt to find a 'priced' order matching the *normalized* sender's number
+        // If normalization failed above and resulted in the raw number, this might not match if DB expects E164
         $order = CustomOrder::where('phone', $normalizedFromNumber) // Use normalized number
                            ->where('status', 'priced')
                            ->orderBy('created_at', 'desc') // Get the most recent priced order if multiple exist
                            ->first();
 
         if (!$order) {
-            Log::info("Twilio Webhook: No matching 'priced' order found for number {$normalizedFromNumber}.");
+            // Use the normalized number in the log message for clarity on what was searched
+            Log::info("Twilio Webhook: No matching 'priced' order found for normalized number {$normalizedFromNumber}."); 
             // No action needed, just acknowledge receipt
         } elseif ($messageBody === 'YES') {
-            Log::info("Twilio Webhook: Confirmation 'YES' received for order #{$order->id} from {$normalizedFromNumber}.");
+            // Use the normalized number in the log message
+            Log::info("Twilio Webhook: Confirmation 'YES' received for order #{$order->id} from normalized number {$normalizedFromNumber}."); 
             try {
                 $order->status = 'confirmed';
                 $order->save();
@@ -100,7 +105,8 @@ class TwilioWebhookController extends Controller
                     $twilioSid = env('TWILIO_SID');
                     $twilioToken = env('TWILIO_TOKEN');
                     $twilioFrom = env('TWILIO_FROM');
-                    $customerPhone = $normalizedFromNumber; // Use the number that sent the confirmation
+                    // Use the normalized number that sent the confirmation for sending the reply
+                    $customerPhone = $normalizedFromNumber; 
                     $adminPhone = env('ADMIN_PHONE'); // Get admin/shop phone
 
                     if ($twilioSid && $twilioToken && $twilioFrom && $customerPhone) {
@@ -132,7 +138,8 @@ class TwilioWebhookController extends Controller
                 // Don't let this error prevent acknowledging Twilio
             }
         } else {
-            Log::info("Twilio Webhook: Received message '{$messageBody}' from {$normalizedFromNumber} for priced order #{$order->id} - did not match confirmation keyword.");
+            // Use the normalized number in the log message
+            Log::info("Twilio Webhook: Received message '{$messageBody}' from normalized number {$normalizedFromNumber} for priced order #{$order->id} - did not match confirmation keyword."); 
             // Potentially handle other replies or forward to admin?
         }
 
