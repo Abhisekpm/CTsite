@@ -109,7 +109,7 @@ class OrderController extends Controller
                         $formattedPrice = number_format($order->price, 2);
                         $shopPhone = env('ADMIN_PHONE', 'our shop'); // Get admin/shop phone or default
 
-                        $messageBody = "Your custom cake order #{$order->id} is priced at $${formattedPrice}. Please pay $20 via Zelle or Venmo and reply YES to confirm, or contact {$shopPhone} with questions.";
+                        $messageBody = "Your custom cake order #{$order->id} is priced at $${formattedPrice}. Please pay a deposit of$20 via Zelle (5179806354) or Venmo (@Nupur-Kundalia) and reply YES here to confirm";
 
                         $twilio->messages->create(
                             $customerPhone, // To customer
