@@ -113,7 +113,7 @@ class TwilioWebhookController extends Controller
                         $twilio = new TwilioClient($twilioSid, $twilioToken);
 
                         // 1. Send confirmation to Customer
-                        $customerMessage = "Thanks for confirming! Your custom cake order #{$order->id} is confirmed and scheduled for pickup on {$order->pickup_date}.";
+                        $customerMessage = "Thanks for confirming! Your custom cake order #{$order->id} is confirmed and scheduled for pickup on {$order->pickup_date}. Please have a screenshot of $20 deposit handy while picking up";
                         $twilio->messages->create($customerPhone, ['from' => $twilioFrom, 'body' => $customerMessage]);
                         Log::info("Final confirmation SMS sent to customer for order #{$order->id}.");
 

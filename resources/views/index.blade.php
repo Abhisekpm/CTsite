@@ -152,7 +152,7 @@
                         </div>
                     </a>
                     <p>This is our all-time favorite! It is a fusion of the classic Mexican dessert of Tres Leches paired with the popular Indian sweet rasmalai. It has delicate infused flavors of cardamom and saffron. You wont want to miss it!</p>
-                    <a class="btn btn-primary py-3 px-5 mt-2" href="{{ url('our-menu') }}">Order Now</a>
+                    <a class="btn btn-primary py-3 px-5 mt-2" href="{{ url('our-menu') }}">See Menu</a>
                 </div>
             </div>
             <div class="col-md-4 text-center">
@@ -166,7 +166,7 @@
 
                     </a>
                     <p>We love to experiment with flavors! Our style combines European pastries, Indian flavors and the American classics. We try to incorporate different cultural influences in our baking. Stop by to experience the magic!</p>
-                    <a class="btn btn-primary py-3 px-5 mt-2" href="{{ url('our-menu') }}">Order Now</a>
+                    <a class="btn btn-primary py-3 px-5 mt-2" href="{{ url('our-menu') }}">See Menu</a>
                 </div>
             </div>
             <div class="col-md-4 text-center">
@@ -179,7 +179,7 @@
                         </div>
                     </a>
                     <p>Our custom decorated cakes for your special occasions are the talk of the town. We cater to your whims and fancies when it comes to cake decorations. Our mantra is, if you can imagine it, we can create it.</p>
-                    <a class="btn btn-primary py-3 px-5 mt-2" href="{{ url('our-menu') }}">Order Now</a>
+                    <a class="btn btn-primary py-3 px-5 mt-2" href="{{ url('our-menu') }}">See Menu</a>
                 </div>
             </div>
         </div>

@@ -34,8 +34,8 @@ class OrderController extends Controller
             $query->where('status', $status);
         }
 
-        // Apply future orders filter if requested
-        if ($filter === 'future') {
+        // Default to future orders unless 'filter=all_time' is explicitly passed.
+        if ($filter !== 'all_time') { // If filter is 'future', null, or anything else, apply future condition.
             $query->whereDate('pickup_date', '>=', Carbon::today());
         }
 
@@ -109,7 +109,7 @@ class OrderController extends Controller
                         $formattedPrice = number_format($order->price, 2);
                         $shopPhone = env('ADMIN_PHONE', 'our shop'); // Get admin/shop phone or default
 
-                        $messageBody = "Your custom cake order #{$order->id} is priced at $${formattedPrice}. Please pay a deposit of$20 via Zelle (5179806354) or Venmo (@Nupur-Kundalia) and reply YES here to confirm";
+                        $messageBody = "Your custom cake order #{$order->id} is priced at $${formattedPrice}. Please pay a deposit of$20 via Zelle (5179806354) or Venmo (@Nupur-Kundalia) and reply YES here to confirm. If there are questions contact the bakery at (267)-541-8620";
 
                         $twilio->messages->create(
                             $customerPhone, // To customer

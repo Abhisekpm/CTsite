@@ -34,75 +34,106 @@
          <div class="btn-group btn-group-sm" role="group" aria-label="Order Date Filter">
             @php
                 $statusParams = request()->only('status'); // Preserve status filter
-                $futureFilterActive = request()->query('filter') === 'future';
+                $currentFilter = request()->query('filter'); // Get current filter value
 
-                $allOrdersParams = $statusParams; // Base params for "All"
-                $futureOrdersParams = array_merge($statusParams, ['filter' => 'future']); // Add 'filter' for "Future"
+                // Parameters for "All Orders (including past)"
+                $allTimeOrdersParams = array_merge($statusParams, ['filter' => 'all_time']);
+                
+                // Parameters for "Future Orders"
+                $futureOrdersParams = array_merge($statusParams, ['filter' => 'future']);
+
+                // Determine active button state for styling
+                // Future is active if filter is 'future' OR if no filter is set (it's the default)
+                $isFutureActive = ($currentFilter === 'future' || is_null($currentFilter));
+                $isAllTimeActive = ($currentFilter === 'all_time');
             @endphp
 
             {{-- All Orders Button --}}
-            <a href="{{ route('admin.orders.index', $allOrdersParams) }}" 
-               class="btn {{ !$futureFilterActive ? 'btn-primary' : 'btn-outline-primary' }}">
+            <a href="{{ route('admin.orders.index', $allTimeOrdersParams) }}" 
+               class="btn {{ $isAllTimeActive ? 'btn-primary' : 'btn-outline-primary' }}">
                All Orders
             </a>
 
             {{-- Future Orders Button --}}
             <a href="{{ route('admin.orders.index', $futureOrdersParams) }}" 
-               class="btn {{ $futureFilterActive ? 'btn-primary' : 'btn-outline-primary' }}">
+               class="btn {{ $isFutureActive ? 'btn-primary' : 'btn-outline-primary' }}">
                Future Orders
             </a>
         </div>
     </div>
     {{-- End Future Orders Toggle --}}
 
-    <div class="card">
-        <div class="card-body p-0">
-            <div class="table-responsive responsive-table-wrapper">
-                <table class="table table-hover table-striped mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>#ID</th>
-                            <th>Customer Name</th>
-                            <th>Cake Size</th>
-                            <th>Cake Flavor</th>
-                            <th>Pickup Date</th>
-                            <th>Status</th>
-                            <th>Price</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($orders as $order)
-                            <tr class="border-bottom">
-                                <td data-label="ID">{{ $order->id }}</td>
-                                <td data-label="Customer">{{ $order->customer_name }}</td>
-                                <td data-label="Size">{{ $order->cake_size }}</td>
-                                <td data-label="Flavor">{{ $order->cake_flavor }}</td>
-                                <td data-label="Pickup">{{ \Carbon\Carbon::parse($order->pickup_date)->format('M d, Y') }} at {{ \Carbon\Carbon::parse($order->pickup_time)->format('h:i A') }}</td>
-                                <td data-label="Status">
+    {{-- New Layout --}}
+    @if($orders->isEmpty())
+        <div class="alert alert-info text-center">No orders found.</div>
+    @else
+        @php
+            $groupedOrders = $orders->groupBy(function ($order) {
+                return \Carbon\Carbon::parse($order->pickup_date)->format('l, F j, Y');
+            });
+        @endphp
+
+        @foreach ($groupedOrders as $date => $ordersOnDate)
+            <div class="mb-4">
+                <h4 class="mb-3" style="font-size: 1.1rem; font-weight: bold;">{{ $date }}</h4>
+                <ul class="list-group">
+                    @foreach ($ordersOnDate as $order)
+                        <li class="list-group-item d-flex justify-content-between align-items-start py-3 px-3">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold text-warning" style="color: #FFA500 !important;">{{ strtoupper($order->customer_name) }} (#{{ $order->id }})</div>
+                                <div class="text-dark fw-bold fs-5">{{ $order->cake_flavor ?: 'N/A' }}</div>
+                                <div class="text-muted" style="font-size: 0.9rem;">{{ $order->cake_size ?: 'N/A' }}</div>
+                                @if($order->custom_decoration)
+                                    <div class="mt-1 text-muted" style="font-size: 0.85rem; white-space: pre-wrap;">{{ $order->custom_decoration }}</div>
+                                @endif
+                                @if($order->message_on_cake)
+                                     <div class="mt-1 text-muted" style="font-size: 0.85rem;"><em>Message: {{ $order->message_on_cake }}</em></div>
+                                @endif
+                                <div>
                                     <span class="badge rounded-pill bg-{{ $order->status == 'pending' ? 'warning text-dark' : ($order->status == 'priced' ? 'info text-dark' : ($order->status == 'confirmed' ? 'success' : 'secondary')) }}">
                                         {{ ucfirst($order->status) }}
                                     </span>
-                                </td>
-                                <td data-label="Price">{{ $order->price ? '$' . number_format($order->price, 2) : '-' }}</td>
-                                <td data-label="Action">
-                                    <a href="{{ route('admin.orders.show', $order) }}" class="btn btn-sm btn-primary">Details</a>
-                                    {{-- Add other actions like delete if needed --}}
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="8" class="text-center text-muted">No orders found.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                                    @if($order->price)
+                                        <span class="badge rounded-pill bg-success ms-1">${{ number_format($order->price, 2) }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                            <a href="{{ route('admin.orders.show', $order) }}" class="btn btn-sm btn-outline-secondary" style="font-size: 1.2rem; padding: 0.2rem 0.5rem;">
+                                <i class="bi bi-three-dots"></i> &hellip;
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
             </div>
-        </div>
+        @endforeach
+
         @if ($orders->hasPages())
-            <div class="card-footer">
+            <div class="card-footer bg-transparent border-top-0">
                 {{ $orders->links() }} {{-- Display pagination links --}}
             </div>
         @endif
-    </div>
-@endsection 
+    @endif
+@endsection
+
+@push('styles')
+<style>
+    .list-group-item {
+        border-radius: 0.5rem; /* Softer edges for list items */
+        border: 1px solid #e9ecef; /* Light border */
+        margin-bottom: 0.75rem; /* Space between items */
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075); /* Subtle shadow */
+    }
+    .list-group-item .fw-bold.text-warning { /* Target the customer name specifically */
+        color: #E67E22 !important; /* Using a slightly darker orange for better readability if #FFA500 is too light */
+        font-size: 0.8rem; /* Smaller font size for customer name */
+        margin-bottom: 0.1rem; /* Less space below customer name */
+    }
+    .list-group-item .text-dark.fw-bold.fs-5 { /* Target the cake flavor */
+        margin-bottom: 0.1rem; /* Less space below cake flavor */
+    }
+    .list-group-item .text-muted {
+        line-height: 1.3; /* Adjust line height for better readability in descriptions */
+    }
+    /* Ensure Bootstrap Icons are loaded if you use them, e.g., via CDN in your main layout */
+</style>
+@endpush 
