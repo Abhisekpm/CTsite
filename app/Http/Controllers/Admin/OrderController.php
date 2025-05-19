@@ -232,13 +232,14 @@ class OrderController extends Controller
     public function printTodaysDispatch()
     {
         $today = Carbon::today();
-        // Temporarily fetch all orders for layout checking
-        $todaysOrders = CustomOrder::orderBy('pickup_time', 'asc')
-                                    ->get();
+        $todaysConfirmedOrders = CustomOrder::whereDate('pickup_date', $today)
+                                          ->where('status', 'confirmed') // Added filter for confirmed status
+                                          ->orderBy('pickup_time', 'asc')
+                                          ->get();
         
         return view('admin.orders.print_dispatch', [
-            'orders' => $todaysOrders,
-            'printDate' => $today->format('l, F j, Y') // Date display remains as today
+            'orders' => $todaysConfirmedOrders,
+            'printDate' => $today->format('l, F j, Y') 
         ]);
     }
 }
