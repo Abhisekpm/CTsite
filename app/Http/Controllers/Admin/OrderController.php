@@ -223,4 +223,22 @@ class OrderController extends Controller
             return redirect()->route('admin.orders.show', $order)->with('error', 'Failed to cancel order.');
         }
     }
+
+    /**
+     * Generate a printable view of today's dispatch orders.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function printTodaysDispatch()
+    {
+        $today = Carbon::today();
+        // Temporarily fetch all orders for layout checking
+        $todaysOrders = CustomOrder::orderBy('pickup_time', 'asc')
+                                    ->get();
+        
+        return view('admin.orders.print_dispatch', [
+            'orders' => $todaysOrders,
+            'printDate' => $today->format('l, F j, Y') // Date display remains as today
+        ]);
+    }
 }

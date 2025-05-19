@@ -63,6 +63,13 @@
     </div>
     {{-- End Future Orders Toggle --}}
 
+    {{-- Print Todays Dispatch Button --}}
+    <div class="mb-3">
+        <a href="{{ route('admin.orders.printTodaysDispatch') }}" target="_blank" class="btn btn-info btn-sm">
+            <i class="bi bi-printer"></i> Print Todays Dispatch
+        </a>
+    </div>
+
     {{-- New Layout --}}
     @if($orders->isEmpty())
         <div class="alert alert-info text-center">No orders found.</div>

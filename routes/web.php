@@ -220,15 +220,21 @@ Route::group(['middleware' => ['auth:admin'], 'prefix' => 'admin'], function () 
         Route::post('ccat/delete', 'destroy')->name('ccat/delete');
     });
 
-    // Add Admin Custom Order Management Routes
+    // Custom Cake Order Admin Routes
     Route::controller(AdminOrderController::class)->prefix('orders')->name('admin.orders.')->group(function () {
-        Route::get('/', 'index')->name('index'); // admin.orders.index -> GET /admin/orders
-        Route::get('/{order}', 'show')->name('show'); // admin.orders.show -> GET /admin/orders/{order}
-        Route::patch('/{order}/update-price', 'updatePrice')->name('updatePrice'); // admin.orders.updatePrice -> PATCH /admin/orders/{order}/update-price
-        Route::put('/{order}', 'update')->name('update'); // admin.orders.update -> PUT /admin/orders/{order}
-        Route::patch('/{order}/confirm', 'confirmOrder')->name('confirm'); // admin.orders.confirm -> PATCH /admin/orders/{order}/confirm
-        Route::patch('/{order}/cancel', 'cancelOrder')->name('cancel'); // admin.orders.cancel -> PATCH /admin/orders/{order}/cancel
-        // Add other routes later if needed (e.g., delete)
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create'); // If you need a create page for orders in admin
+        Route::post('/', 'store')->name('store');       // If you need to store orders from admin
+        Route::get('/{order}', 'show')->name('show');
+        Route::get('/{order}/edit', 'edit')->name('edit'); // If you have an edit view
+        Route::put('/{order}', 'update')->name('update');
+        Route::delete('/{order}', 'destroy')->name('destroy'); // If you need delete functionality
+        Route::patch('/{order}/price', 'updatePrice')->name('updatePrice');
+        Route::patch('/{order}/confirm', 'confirm')->name('confirm');
+        Route::patch('/{order}/cancel', 'cancel')->name('cancel');
+        
+        // Route for printing today's dispatch
+        Route::get('/print/todays-dispatch', 'printTodaysDispatch')->name('printTodaysDispatch');
     });
 });
 

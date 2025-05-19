@@ -130,6 +130,18 @@ This list tracks the implementation steps for the custom cake order form and con
 
 ## Deployment to GoDaddy/cPanel
 
+SSH through Putty (password $Beta")
+
+cd CTsite
+git status
+
+Discard Local Changes:
+git reset --hard HEAD
+
+Pull Latest Code from GitHub:
+git pull origin master
+
+
 Revised Deployment Sequence
 1. Preparation & Local Build
 

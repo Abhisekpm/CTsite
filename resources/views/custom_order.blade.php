@@ -126,16 +126,18 @@
                                     {{-- Pickup Time --}}
                                     <div class="col-md-6">
                                         {{-- Wrapper for Tempus Dominus --}}
-                                        <div class="input-group" id="pickup_time_picker" data-td-target-input="nearest" data-td-target-toggle="nearest">
-                                            <input type="text" 
+                                        <div class="input-group">
+                                            <input type="time"
                                                 class="form-control @error('pickup_time') is-invalid @enderror" 
                                                 id="pickup_time" 
                                                 name="pickup_time" 
                                                 placeholder="Select Pickup Time (11am-7pm)" 
-                                                value="{{ old('pickup_time') }}" 
-                                                data-td-target="#pickup_time_picker" 
+                                                value="{{ old('pickup_time') }}"
+                                                min="11:00"
+                                                max="19:00"
+                                                step="900"
                                                 required>
-                                            <span class="input-group-text" data-td-target="#pickup_time_picker" data-td-toggle="datetimepicker">
+                                            <span class="input-group-text">
                                                 <i class="fas fa-clock"></i>
                                             </span>
                                             @error('pickup_time') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
@@ -598,23 +600,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    const pickupTimePickerEl = document.getElementById('pickup_time_picker');
-    if (pickupTimePickerEl) {
-        new tempusDominus.TempusDominus(pickupTimePickerEl, {
-            localization: { format: 'HH:mm', locale: 'en-US' },
-            display: {
-                 icons: { time: 'fas fa-clock', date: 'fas fa-calendar', up: 'fas fa-chevron-up', down: 'fas fa-chevron-down', previous: 'fas fa-chevron-left', next: 'fas fa-chevron-right', today: 'fas fa-calendar-check', clear: 'fas fa-trash', close: 'fas fa-times' },
-                 buttons: { today: false, clear: false, close: true },
-                 components: { calendar: false, date: false, month: false, year: false, decades: false, clock: true, hours: true, minutes: true, seconds: false }
-            },
-            restrictions: {
-                 enabledHours: Array.from({length: 19 - 11 + 1}, (_, i) => 11 + i) // Hours 11-19
-            },
-            stepping: 15
-        });
-    }
-    // --- End Tempus Dominus Initialization ---
-
     // --- Tab Validation Function ---
     function validateTab(tabIndex) {
         let isTabValid = true;
@@ -631,8 +616,16 @@ document.addEventListener('DOMContentLoaded', function () {
             } else if (field.id === 'pickup_date') { // Check by ID for date picker
                  fieldValid = validateRequired(field); // Basic required check
             } else if (field.id === 'pickup_time') { // Check by ID for time picker
-                 fieldValid = validateRequired(field); // Basic required check
-                 // Flatpickr prevents selection of invalid times (outside range/increment)
+                 fieldValid = validateRequired(field); 
+                 if (fieldValid) { // Only check time if a value exists
+                    const timeValue = field.value; // Value is in HH:mm format
+                    const minTime = "11:00";
+                    const maxTime = "19:00";
+                    if (timeValue < minTime || timeValue > maxTime) {
+                        showError(field.id, 'Pickup time must be between 11:00 AM and 7:00 PM.');
+                        fieldValid = false;
+                    }
+                 }
             } else { // Includes text, tel, textarea etc. marked as required
                  fieldValid = validateRequired(field);
             }

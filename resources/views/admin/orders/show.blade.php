@@ -40,8 +40,8 @@
                             <dt class="col-sm-4">Pickup Time:</dt>
                             <dd class="col-sm-8">{{ \Carbon\Carbon::parse($order->pickup_time)->format('h:i A') }}</dd>
 
-                            <dt class="col-sm-4">Submitted:</dt>
-                            <dd class="col-sm-8">{{ $order->created_at->format('M d, Y h:i A') }} ({{ $order->created_at->diffForHumans() }})</dd>
+                            {{-- <dt class="col-sm-4">Submitted:</dt>
+                            <dd class="col-sm-8">{{ $order->created_at->format('M d, Y h:i A') }} ({{ $order->created_at->diffForHumans() }})</dd> --}}
 
                             <dt class="col-sm-4">Status:</dt>
                             <dd class="col-sm-8">
