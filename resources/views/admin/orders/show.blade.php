@@ -35,10 +35,20 @@
                             <dd class="col-sm-8">{{ $order->phone }}</dd>
 
                             <dt class="col-sm-4">Pickup Date:</dt>
-                            <dd class="col-sm-8">{{ \Carbon\Carbon::parse($order->pickup_date)->format('l, F jS, Y') }}</dd>
+                            <dd class="col-sm-8">
+                                <input type="date" class="form-control form-control-sm @error('pickup_date') is-invalid @enderror" id="pickup_date" name="pickup_date" value="{{ old('pickup_date', \Carbon\Carbon::parse($order->pickup_date)->format('Y-m-d')) }}">
+                                @error('pickup_date')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </dd>
 
                             <dt class="col-sm-4">Pickup Time:</dt>
-                            <dd class="col-sm-8">{{ \Carbon\Carbon::parse($order->pickup_time)->format('h:i A') }}</dd>
+                            <dd class="col-sm-8">
+                                <input type="time" class="form-control form-control-sm @error('pickup_time') is-invalid @enderror" id="pickup_time" name="pickup_time" value="{{ old('pickup_time', \Carbon\Carbon::parse($order->pickup_time)->format('H:i')) }}">
+                                @error('pickup_time')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </dd>
 
                             {{-- <dt class="col-sm-4">Submitted:</dt>
                             <dd class="col-sm-8">{{ $order->created_at->format('M d, Y h:i A') }} ({{ $order->created_at->diffForHumans() }})</dd> --}}
@@ -192,7 +202,14 @@
                             @method('PATCH')
                             <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to cancel this order?')">Cancel Order</button>
                         </form>
-                     @else
+                    @elseif($order->status == 'confirmed')
+                        {{-- Pickup Reminder Button for Confirmed Orders --}}
+                        <form action="{{ route('admin.orders.sendPickupReminder', $order) }}" method="POST" class="d-inline-block ms-2">
+                            @csrf
+                            <button type="submit" class="btn btn-info">Send Pickup Reminder</button>
+                        </form>
+                         <p class="text-muted mt-2 mb-0">Order is already {{ $order->status }}.</p>
+                    @else
                          {{-- Show info if already completed/cancelled --}}
                          <p class="text-muted mb-0">Order is already {{ $order->status }}.</p>
                     @endif

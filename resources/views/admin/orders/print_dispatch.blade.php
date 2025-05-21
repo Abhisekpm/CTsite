@@ -48,7 +48,7 @@
 </head>
 <body>
     <div class="print-header">
-        <h2><strong>Today's Dispatch: {{ $printDate }}</strong></h2>
+        <h2><strong>{{ $printDate }}</strong></h2>
     </div>
 
     @if($orders->isEmpty() && !isset($addBlankRows))
@@ -79,9 +79,9 @@
                     </tr>
                 @endforeach
                 
-                @php $blankRowsToAdd = 15 - $orders->count(); @endphp 
+                @php $blankRowsToAdd = 13 - $orders->count(); @endphp 
                 @if($blankRowsToAdd < 0) @php $blankRowsToAdd = 0; @endphp @endif 
-                @php if(isset($addBlankRows) && $orders->isEmpty()) $blankRowsToAdd = $addBlankRows > 0 ? $addBlankRows : 15; @endphp
+                @php if(isset($addBlankRows) && $orders->isEmpty()) $blankRowsToAdd = $addBlankRows > 0 ? $addBlankRows : 13; @endphp
 
                 @for ($i = 0; $i < $blankRowsToAdd; $i++)
                     <tr>

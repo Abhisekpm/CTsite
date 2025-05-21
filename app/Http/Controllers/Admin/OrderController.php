@@ -153,22 +153,31 @@ class OrderController extends Controller
      */
     public function update(Request $request, CustomOrder $order)
     {
+        // Log all request data
+        logger()->info('Update request data:', $request->all());
+
         // Validate the incoming request for the editable fields
         // Removed 'required' for fields assumed to exist from initial order
         $validated = $request->validate([
-            'customer_name' => 'sometimes|string|max:255', // Changed required to sometimes
-            'cake_size' => 'sometimes|string|max:100',        // Changed required to sometimes
-            'cake_flavor' => 'sometimes|string|max:100',     // Changed required to sometimes
-            'cake_sponge' => 'nullable|string|max:100',        // Added cake sponge validation
-            'eggs_ok' => ['sometimes', Rule::in(['Yes', 'No'])], // Changed required to sometimes
+            'customer_name' => 'sometimes|string|max:255',
+            'cake_size' => 'sometimes|string|max:100',
+            'cake_flavor' => 'sometimes|string|max:100',
+            'cake_sponge' => 'nullable|string|max:100',
+            'eggs_ok' => ['sometimes', Rule::in(['Yes', 'No'])],
             'message_on_cake' => 'nullable|string|max:500',
             'allergies' => 'nullable|string|max:500',
             'custom_decoration' => 'nullable|string|max:1000',
+            'pickup_date' => 'sometimes|date',
+            'pickup_time' => 'sometimes|date_format:H:i', // Corrected to H:i for 24-hour format
         ]);
+
+        // Log validated data
+        logger()->info('Validated data for update:', $validated);
 
         try {
             // Update the order with validated data
             $order->update($validated);
+            logger()->info('Order updated successfully with:', $validated);
 
             return redirect()->route('admin.orders.show', $order)->with('success', 'Order details updated successfully.');
 
@@ -184,7 +193,7 @@ class OrderController extends Controller
      * @param  \App\Models\CustomOrder  $order
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function confirmOrder(CustomOrder $order)
+    public function confirm(CustomOrder $order)
     {
         if ($order->status !== 'priced') {
             return redirect()->route('admin.orders.show', $order)->with('error', 'Order cannot be confirmed unless status is priced.');
@@ -207,7 +216,7 @@ class OrderController extends Controller
      * @param  \App\Models\CustomOrder  $order
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function cancelOrder(CustomOrder $order)
+    public function cancel(CustomOrder $order)
     {
         if (in_array($order->status, ['confirmed', 'cancelled'])) {
              return redirect()->route('admin.orders.show', $order)->with('error', 'Order is already confirmed or cancelled.');
@@ -241,5 +250,59 @@ class OrderController extends Controller
             'orders' => $todaysConfirmedOrders,
             'printDate' => $today->format('l, F j, Y') 
         ]);
+    }
+
+    /**
+     * Send a pickup reminder SMS to the customer.
+     *
+     * @param  \App\Models\CustomOrder  $order
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function sendPickupReminder(CustomOrder $order)
+    {
+        if (!in_array($order->status, ['confirmed', 'priced'])) {
+            return redirect()->route('admin.orders.show', $order)->with('error', 'Pickup reminder can only be sent for priced or confirmed orders.');
+        }
+
+        $smsSent = false;
+        $smsError = null;
+
+        try {
+            $twilioSid = env('TWILIO_SID');
+            $twilioToken = env('TWILIO_TOKEN');
+            $twilioFrom = env('TWILIO_FROM');
+            $customerPhone = $order->phone;
+
+            if ($twilioSid && $twilioToken && $twilioFrom && $customerPhone) {
+                $twilio = new TwilioClient($twilioSid, $twilioToken);
+
+                $pickupDate = Carbon::parse($order->pickup_date)->format('l, F jS');
+                $pickupTime = Carbon::parse($order->pickup_time)->format('h:i A');
+                
+                $messageBody = "Reminder: Your cake order #{$order->id} from Chocolate Therapy is scheduled for pickup on {$pickupDate} at {$pickupTime}. If you have any questions, please contact us at (267)541-8620.";
+
+                $twilio->messages->create(
+                    $customerPhone,
+                    [
+                        'from' => $twilioFrom,
+                        'body' => $messageBody
+                    ]
+                );
+                $smsSent = true;
+                logger()->info("Pickup reminder SMS sent for order #{$order->id}.");
+                return redirect()->route('admin.orders.show', $order)->with('success', 'Pickup reminder SMS sent successfully.');
+            } else {
+                $smsError = 'Twilio SMS not sent. Missing Twilio config in .env or customer phone.';
+                logger()->warning('Twilio SMS not sent for order #' . $order->id . '. Missing Twilio/Customer config for reminder.');
+                return redirect()->route('admin.orders.show', $order)->with('error', $smsError);
+            }
+        } catch (TwilioException $e) {
+            $smsError = 'Twilio Error: ' . $e->getMessage();
+            logger()->error('TwilioException sending pickup reminder for order #' . $order->id . ': ' . $e->getMessage());
+            return redirect()->route('admin.orders.show', $order)->with('error', 'Failed to send reminder: ' . $smsError);
+        } catch (Exception $e) {
+            logger()->error('General Exception sending pickup reminder for order #' . $order->id . ': ' . $e->getMessage());
+            return redirect()->route('admin.orders.show', $order)->with('error', 'An unexpected error occurred while sending the reminder.');
+        }
     }
 }

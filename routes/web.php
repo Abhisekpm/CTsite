@@ -232,6 +232,7 @@ Route::group(['middleware' => ['auth:admin'], 'prefix' => 'admin'], function () 
         Route::patch('/{order}/price', 'updatePrice')->name('updatePrice');
         Route::patch('/{order}/confirm', 'confirm')->name('confirm');
         Route::patch('/{order}/cancel', 'cancel')->name('cancel');
+        Route::post('/{order}/pickup-reminder', 'sendPickupReminder')->name('sendPickupReminder');
         
         // Route for printing today's dispatch
         Route::get('/print/todays-dispatch', 'printTodaysDispatch')->name('printTodaysDispatch');
