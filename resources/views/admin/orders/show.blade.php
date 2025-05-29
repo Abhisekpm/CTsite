@@ -125,7 +125,7 @@
 
                             <dt class="col-sm-4">Message on Cake:</dt>
                             <dd class="col-sm-8">
-                                <textarea class="form-control form-control-sm @error('message_on_cake') is-invalid @enderror" id="message_on_cake" name="message_on_cake" rows="2">{{ old('message_on_cake', $order->message_on_cake) }}</textarea>
+                                <textarea class="form-control form-control-sm @error('message_on_cake') is-invalid @enderror" id="message_on_cake" name="message_on_cake">{{ old('message_on_cake', $order->message_on_cake) }}</textarea>
                                 @error('message_on_cake')
                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
@@ -133,7 +133,7 @@
 
                             <dt class="col-sm-4">Custom Decoration:</dt>
                             <dd class="col-sm-8">
-                                 <textarea class="form-control form-control-sm @error('custom_decoration') is-invalid @enderror" id="custom_decoration" name="custom_decoration" rows="2">{{ old('custom_decoration', $order->custom_decoration) }}</textarea>
+                                 <textarea class="form-control form-control-sm @error('custom_decoration') is-invalid @enderror" id="custom_decoration" name="custom_decoration">{{ old('custom_decoration', $order->custom_decoration) }}</textarea>
                                  @error('custom_decoration')
                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
@@ -256,4 +256,27 @@
             {{-- Add other actions here? e.g., Mark as Confirmed Manually, Cancel Order --}}
         </div>
     </div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const textareas = [
+            document.getElementById('message_on_cake'),
+            document.getElementById('custom_decoration')
+        ];
+
+        textareas.forEach(textarea => {
+            if (textarea) {
+                function autoResize() {
+                    textarea.style.height = 'auto'; // Reset height to recalculate
+                    textarea.style.height = textarea.scrollHeight + 'px';
+                }
+                textarea.addEventListener('input', autoResize);
+                autoResize(); // Initial resize on page load
+            }
+        });
+    });
+</script>
+@endpush
+
 @endsection 

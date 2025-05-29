@@ -236,6 +236,8 @@ Route::group(['middleware' => ['auth:admin'], 'prefix' => 'admin'], function () 
         
         // Route for printing today's dispatch
         Route::get('/print/todays-dispatch', 'printTodaysDispatch')->name('printTodaysDispatch');
+        // Route for printing dispatch for a selected date
+        Route::get('/print-dispatch/{date}', 'printDispatchForDate')->name('printDispatchForDate')->where('date', '[0-9]{4}-[0-9]{2}-[0-9]{2}');
     });
 });
 

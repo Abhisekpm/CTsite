@@ -153,9 +153,6 @@ class OrderController extends Controller
      */
     public function update(Request $request, CustomOrder $order)
     {
-        // Log all request data
-        logger()->info('Update request data:', $request->all());
-
         // Validate the incoming request for the editable fields
         // Removed 'required' for fields assumed to exist from initial order
         $validated = $request->validate([
@@ -171,13 +168,9 @@ class OrderController extends Controller
             'pickup_time' => 'sometimes|date_format:H:i', // Corrected to H:i for 24-hour format
         ]);
 
-        // Log validated data
-        logger()->info('Validated data for update:', $validated);
-
         try {
             // Update the order with validated data
             $order->update($validated);
-            logger()->info('Order updated successfully with:', $validated);
 
             return redirect()->route('admin.orders.show', $order)->with('success', 'Order details updated successfully.');
 
@@ -249,6 +242,32 @@ class OrderController extends Controller
         return view('admin.orders.print_dispatch', [
             'orders' => $todaysConfirmedOrders,
             'printDate' => $today->format('l, F j, Y') 
+        ]);
+    }
+
+    /**
+     * Generate a printable view of dispatch orders for a specific date.
+     *
+     * @param  string $dateString The date in Y-m-d format.
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+     */
+    public function printDispatchForDate($dateString)
+    {
+        try {
+            $selectedDate = Carbon::parse($dateString);
+        } catch (\Exception $e) {
+            // Handle invalid date format
+            return redirect()->route('admin.orders.index')->with('error', 'Invalid date format for dispatch.');
+        }
+
+        $confirmedOrdersForDate = CustomOrder::whereDate('pickup_date', $selectedDate)
+                                          ->where('status', 'confirmed')
+                                          ->orderBy('pickup_time', 'asc')
+                                          ->get();
+        
+        return view('admin.orders.print_dispatch', [
+            'orders' => $confirmedOrdersForDate,
+            'printDate' => $selectedDate->format('l, F j, Y') 
         ]);
     }
 

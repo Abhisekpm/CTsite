@@ -63,10 +63,11 @@
     </div>
     {{-- End Future Orders Toggle --}}
 
-    {{-- Print Todays Dispatch Button --}}
-    <div class="mb-3">
-        <a href="{{ route('admin.orders.printTodaysDispatch') }}" target="_blank" class="btn btn-info btn-sm">
-            <i class="bi bi-printer"></i> Print Todays Dispatch
+    {{-- Print Dispatch Section --}}
+    <div class="mb-3 d-flex align-items-center">
+        <input type="date" id="dispatch_date" class="form-control form-control-sm me-2" style="width: auto;" value="{{ now()->format('Y-m-d') }}">
+        <a href="#" id="print_dispatch_btn" target="_blank" class="btn btn-info btn-sm">
+            <i class="bi bi-printer"></i> Print Dispatch
         </a>
     </div>
 
@@ -141,6 +142,50 @@
     .list-group-item .text-muted {
         line-height: 1.3; /* Adjust line height for better readability in descriptions */
     }
+
+    /* Pagination Styles */
+    .pagination {
+        font-size: 0.875rem; /* Smaller font size for pagination container */
+    }
+    .page-item .page-link {
+        padding: 0.25rem 0.5rem; /* Smaller padding for page links */
+        font-size: 0.875rem; /* Smaller font size for page links */
+        line-height: 1.5; /* Adjust line-height if necessary */
+    }
+    .page-item.disabled .page-link {
+        padding: 0.25rem 0.5rem; /* Ensure disabled items also have smaller padding */
+    }
     /* Ensure Bootstrap Icons are loaded if you use them, e.g., via CDN in your main layout */
 </style>
+@endpush
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const dispatchDateInput = document.getElementById('dispatch_date');
+        const printDispatchBtn = document.getElementById('print_dispatch_btn');
+        // Base URL for the print dispatch route (will be updated with the selected date)
+        // Make sure to define this route in your web.php, e.g., Route::get('admin/orders/print-dispatch/{date}', ...);
+        const basePrintUrl = "{{ url('admin/orders/print-dispatch') }}";
+
+        function updatePrintDispatchLink() {
+            if (dispatchDateInput && printDispatchBtn) {
+                const selectedDate = dispatchDateInput.value;
+                if (selectedDate) {
+                    printDispatchBtn.href = `${basePrintUrl}/${selectedDate}`;
+                } else {
+                    // Optionally handle case where no date is selected, e.g., disable button or revert to a default
+                    printDispatchBtn.href = '#'; // Or some default link
+                }
+            }
+        }
+
+        if (dispatchDateInput) {
+            dispatchDateInput.addEventListener('change', updatePrintDispatchLink);
+        }
+
+        // Initial setup of the link
+        updatePrintDispatchLink();
+    });
+</script>
 @endpush 
