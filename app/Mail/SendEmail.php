@@ -28,7 +28,7 @@ class SendEmail extends Mailable
 
     public function build()
     {
-    return $this->subject('Query email From dartdesignagency.com')
+    return $this->subject('Contact Form Inquiry - Chocolate Therapy')
                     ->view('mail');
     }
 }

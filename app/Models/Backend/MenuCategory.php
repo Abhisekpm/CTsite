@@ -12,14 +12,21 @@ class MenuCategory extends Model
     protected $table = 'menu_category';
 
     protected $fillable = [
-
         'name',
         'slug',
+        'order',
         'image',
         'description',
         'meta_title',
         'meta_keywords',
         'meta_description',
-
     ];
+
+    /**
+     * Get the menu items for the category.
+     */
+    public function menus()
+    {
+        return $this->hasMany(Menu::class, 'menu_category_id');
+    }
 }

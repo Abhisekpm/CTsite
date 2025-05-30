@@ -116,8 +116,8 @@
         @endforeach
 
         @if ($orders->hasPages())
-            <div class="card-footer bg-transparent border-top-0">
-                {{ $orders->links() }} {{-- Display pagination links --}}
+            <div class="d-flex justify-content-center mt-4">
+                {{ $orders->links() }}
             </div>
         @endif
     @endif
@@ -143,19 +143,66 @@
         line-height: 1.3; /* Adjust line height for better readability in descriptions */
     }
 
-    /* Pagination Styles */
+    /* Improved Pagination Styles */
     .pagination {
-        font-size: 0.875rem; /* Smaller font size for pagination container */
+        font-size: 0.875rem;
+        margin-bottom: 0;
     }
-    .page-item .page-link {
-        padding: 0.25rem 0.5rem; /* Smaller padding for page links */
-        font-size: 0.875rem; /* Smaller font size for page links */
-        line-height: 1.5; /* Adjust line-height if necessary */
+    
+    .pagination .page-link {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        line-height: 1.25;
+        border: 1px solid #dee2e6;
+        color: #6c757d;
     }
-    .page-item.disabled .page-link {
-        padding: 0.25rem 0.5rem; /* Ensure disabled items also have smaller padding */
+    
+    .pagination .page-item.active .page-link {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: white;
     }
-    /* Ensure Bootstrap Icons are loaded if you use them, e.g., via CDN in your main layout */
+    
+    .pagination .page-link:hover {
+        color: #0056b3;
+        text-decoration: none;
+        background-color: #e9ecef;
+        border-color: #dee2e6;
+    }
+    
+    /* Fix for oversized navigation arrows */
+    .pagination .page-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: auto;
+    }
+    
+    /* Specifically target Previous/Next links to control arrow size */
+    .pagination .page-item:first-child .page-link,
+    .pagination .page-item:last-child .page-link {
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    /* Override any large arrow styling */
+    .pagination .page-link svg,
+    .pagination .page-link i {
+        width: 1em;
+        height: 1em;
+        font-size: 0.875rem;
+    }
+    
+    /* Ensure pagination container doesn't have excessive spacing */
+    .card-footer {
+        padding: 1rem;
+    }
+    
+    /* Center the pagination */
+    .card-footer .pagination {
+        justify-content: center;
+        margin: 0;
+    }
 </style>
 @endpush
 

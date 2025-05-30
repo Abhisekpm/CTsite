@@ -13,14 +13,15 @@ class Menu extends Model
 
     protected $fillable = [
         'name',
-        'option_1',
-        'option_2',
-        'price_1_heading',
-        'price_1',
-        'price_2_heading',
-        'price_2',
-        'price_3_heading',
-        'price_3',
+        'menu_category_id',
         'description',
     ];
+
+    /**
+     * Get the category that owns the menu item.
+     */
+    public function menuCategory()
+    {
+        return $this->belongsTo(MenuCategory::class, 'menu_category_id');
+    }
 }

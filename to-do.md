@@ -128,136 +128,202 @@ This list tracks the implementation steps for the custom cake order form and con
     - [x] Loop through images and display each using `Storage::url($image->path)`.
 - [x] **Database Cleanup:** Create migration to remove `decoration_image_path` column from `custom_orders` table (run after verification).
 
-## Deployment to GoDaddy/cPanel
+## MCP (Model Context Protocol) Server Implementation
 
-SSH through Putty (password $Beta")
+This section covers creating an MCP server to expose the custom cake ordering functionality as an API for AI assistants and external integrations.
 
-cd CTsite
-git status
+### 1. REST API Foundation
 
-Discard Local Changes:
-git reset --hard HEAD
+- [ ] **API Routes Setup (`routes/api.php`)**:
+    - [ ] Add custom order endpoints:
+        - [ ] `POST /api/orders` - Create new cake order
+        - [ ] `GET /api/orders/{id}` - Get specific order details
+        - [ ] `GET /api/orders` - List orders (with filtering)
+        - [ ] `PUT/PATCH /api/orders/{id}` - Update order (admin only)
+        - [ ] `DELETE /api/orders/{id}` - Cancel order
+    - [ ] Add support endpoints:
+        - [ ] `GET /api/cake-flavors` - List available cake flavors
+        - [ ] `GET /api/cake-sizes` - List available cake sizes and pricing
+        - [ ] `GET /api/order-status/{id}` - Check order status
+        - [ ] `POST /api/orders/{id}/upload-images` - Upload decoration images
 
-Pull Latest Code from GitHub:
-git pull origin master
+- [ ] **API Controller (`app/Http/Controllers/Api/OrderController.php`)**:
+    - [ ] Create dedicated API controller extending base Controller
+    - [ ] Implement `store()` method for order creation with JSON responses
+    - [ ] Implement `show()` method for order retrieval
+    - [ ] Implement `index()` method for order listing with pagination
+    - [ ] Implement `update()` method for order modifications
+    - [ ] Implement `destroy()` method for order cancellation
+    - [ ] Add proper HTTP status codes (200, 201, 400, 404, 422, 500)
+    - [ ] Implement consistent JSON response format
 
+- [ ] **API Resource Classes**:
+    - [ ] Create `OrderResource` (`php artisan make:resource OrderResource`)
+    - [ ] Create `OrderCollection` for paginated responses
+    - [ ] Create `CakeFlavorResource` for flavor listings
+    - [ ] Define transformation logic for clean API responses
 
-Revised Deployment Sequence
-1. Preparation & Local Build
+### 2. Authentication & Authorization
 
-Backup live files & DB.
+- [ ] **API Authentication Setup**:
+    - [ ] Configure Laravel Sanctum for API token authentication
+    - [ ] Create API token generation endpoint (`POST /api/auth/login`)
+    - [ ] Create API token revocation endpoint (`POST /api/auth/logout`)
+    - [ ] Add middleware groups for different access levels
 
-Commit all local changes to Git.
+- [ ] **Authorization Policies**:
+    - [ ] Create `OrderPolicy` (`php artisan make:policy OrderPolicy`)
+    - [ ] Define policy methods: `view`, `create`, `update`, `delete`
+    - [ ] Implement customer vs admin permission logic
+    - [ ] Apply policies to API controller methods
 
-Locally run:
+- [ ] **Rate Limiting**:
+    - [ ] Configure API rate limiting in `RouteServiceProvider`
+    - [ ] Set different limits for authenticated vs unauthenticated users
+    - [ ] Add specific limits for order creation endpoints
 
-bash
-Copy
-Edit
-npm install
-npm run build
-composer install --optimize-autoloader --no-dev
-php artisan config:clear
-php artisan route:clear
-php artisan view:clear
-Commit your built public/build (or compiled assets) to Git.
+### 3. Data Validation & Transformation
 
-2. Put Site into Maintenance Mode
+- [ ] **API Request Classes**:
+    - [ ] Create `StoreOrderRequest` (`php artisan make:request StoreOrderRequest`)
+    - [ ] Create `UpdateOrderRequest` for order modifications
+    - [ ] Define validation rules specific to API usage
+    - [ ] Add custom validation messages for API responses
 
-If you have SSH:
+- [ ] **Data Transformation**:
+    - [ ] Handle image uploads via API (base64 or multipart)
+    - [ ] Implement proper date/time formatting for API
+    - [ ] Add data sanitization for API inputs
+    - [ ] Ensure consistent field naming conventions
 
-bash
-Copy
-Edit
-php artisan down
+### 4. MCP Server Setup
 
+- [ ] **MCP Server Architecture**:
+    - [ ] Create MCP server directory structure (`mcp-server/`)
+    - [ ] Choose MCP server framework (Node.js/Python based)
+    - [ ] Set up server configuration files
+    - [ ] Create Docker configuration for containerization
 
-3. Database Prep
+- [ ] **MCP Tool Definitions**:
+    - [ ] Define `create_cake_order` tool with parameters:
+        - [ ] customer_name, email, phone (required)
+        - [ ] pickup_date, pickup_time (required)
+        - [ ] cake_size, cake_flavor (required)
+        - [ ] message_on_cake, custom_decoration (optional)
+        - [ ] allergies, eggs_ok (optional)
+    - [ ] Define `get_order_status` tool with order_id parameter
+    - [ ] Define `list_cake_flavors` tool (no parameters)
+    - [ ] Define `list_cake_sizes` tool (no parameters)
+    - [ ] Define `estimate_cake_price` tool with size/flavor parameters
 
-In cPanel → MySQL® Databases, verify (or recreate) your live database & user.
+- [ ] **MCP Server Implementation**:
+    - [ ] Implement HTTP client for Laravel API communication
+    - [ ] Add error handling and retry logic
+    - [ ] Implement authentication token management
+    - [ ] Add request/response logging for debugging
 
-In cPanel → phpMyAdmin, DROP or truncate all tables in the live DB (you’ve already backed up).
+### 5. Supporting Endpoints
 
+- [ ] **Cake Information API**:
+    - [ ] Create `CakeFlavorController` for flavor management
+    - [ ] Implement flavor listing with descriptions and pricing
+    - [ ] Add cake size information with serving suggestions
+    - [ ] Include allergen information for each flavor
 
-4. Code Deployment
+- [ ] **Order Status & Tracking**:
+    - [ ] Create status check endpoint with detailed information
+    - [ ] Add order history retrieval
+    - [ ] Implement order modification tracking
+    - [ ] Add estimated completion time calculations
 
-Clear out your public_html directory contents (but keep the folder).
+### 6. Error Handling & Responses
 
-Via SSH/Git (preferred):
+- [ ] **Global Error Handling**:
+    - [ ] Create API exception handler
+    - [ ] Define standard error response format
+    - [ ] Implement validation error formatting
+    - [ ] Add error logging for API failures
 
-bash
-Copy
-Edit
-cd ~
-git clone git@github.com:you/your_repo.git your_laravel_app
-Or via SFTP/File Manager: upload your zipped project and extract.
+- [ ] **Response Standards**:
+    - [ ] Define consistent JSON response structure
+    - [ ] Implement success/error response helpers
+    - [ ] Add metadata to responses (timestamps, request_id)
+    - [ ] Include helpful error messages for MCP clients
 
+### 7. Documentation & Testing
 
-5. Environment & Storage
+- [ ] **API Documentation**:
+    - [ ] Set up OpenAPI/Swagger documentation
+    - [ ] Document all endpoints with examples
+    - [ ] Include authentication instructions
+    - [ ] Add MCP tool usage examples
 
-Copy or upload your .env to ~/your_laravel_app/.env.
+- [ ] **MCP Documentation**:
+    - [ ] Create MCP server setup instructions
+    - [ ] Document tool definitions and parameters
+    - [ ] Add integration examples for popular AI assistants
+    - [ ] Include troubleshooting guide
 
-Edit it with your live domain, DB_* creds, APP_ENV=production, APP_DEBUG=false, API keys, mail settings, etc.
+- [ ] **Testing**:
+    - [ ] Create API feature tests (`tests/Feature/Api/`)
+    - [ ] Test order creation flow end-to-end
+    - [ ] Test authentication and authorization
+    - [ ] Test error scenarios and edge cases
+    - [ ] Create MCP server integration tests
 
-In that same folder, run (SSH/cPanel Terminal):
+### 8. Deployment & Configuration
 
-bash
-Copy
-Edit
-php artisan storage:link
+- [ ] **Environment Configuration**:
+    - [ ] Add API-specific environment variables
+    - [ ] Configure CORS settings for API access
+    - [ ] Set up separate API subdomain if needed
+    - [ ] Configure rate limiting and throttling
 
+- [ ] **MCP Server Deployment**:
+    - [ ] Create production Docker images
+    - [ ] Set up health check endpoints
+    - [ ] Configure logging and monitoring
+    - [ ] Add SSL/TLS certificate management
 
-6. Import Local Database
+### 9. Security Considerations
 
-In cPanel → phpMyAdmin, select your live database → Import → choose your local-exported .sql → Go.
+- [ ] **API Security**:
+    - [ ] Implement request signing/verification
+    - [ ] Add input sanitization for all endpoints
+    - [ ] Configure proper CORS headers
+    - [ ] Add API versioning strategy
 
+- [ ] **MCP Security**:
+    - [ ] Implement secure token storage
+    - [ ] Add request validation and sanitization
+    - [ ] Configure network security (firewalls, etc.)
+    - [ ] Implement audit logging for all actions
 
+### 10. Integration & Testing
 
-7. Server-Side Dependencies & Caching
+- [ ] **MCP Client Testing**:
+    - [ ] Test with Claude/ChatGPT MCP clients
+    - [ ] Verify tool calling functionality
+    - [ ] Test error handling and edge cases
+    - [ ] Validate response formatting
 
-SSH into ~/your_laravel_app:
+- [ ] **End-to-End Integration**:
+    - [ ] Test complete order flow via MCP
+    - [ ] Verify SMS notifications work with API orders
+    - [ ] Test admin panel integration with API orders
+    - [ ] Validate image upload functionality
 
-bash
-Copy
-Edit
-composer install --optimize-autoloader --no-dev
-Permissions:
+### 11. Monitoring & Maintenance
 
-bash
-Copy
-Edit
-chmod -R 775 storage bootstrap/cache
-chown -R your_cpanel_user:your_cpanel_user storage bootstrap/cache
-Caches & optimization:
+- [ ] **API Monitoring**:
+    - [ ] Set up API performance monitoring
+    - [ ] Add endpoint usage analytics
+    - [ ] Configure error rate alerting
+    - [ ] Monitor rate limiting effectiveness
 
-bash
-Copy
-Edit
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-Optional: only if you have new migrations since your SQL dump:
+- [ ] **MCP Server Monitoring**:
+    - [ ] Add health check monitoring
+    - [ ] Configure uptime monitoring
+    - [ ] Set up log aggregation
+    - [ ] Monitor resource usage and scaling needs
 
-bash
-Copy
-Edit
-php artisan migrate --force
-Finalize & Test
-
-
-8. Exit maintenance mode:
-
-bash
-Copy
-Edit
-php artisan up
-Visit your site, click through key pages, forms, admin, etc.
-
-Tail your logs (storage/logs/laravel.log) for any errors.
-
-
-9. Cleanup
-
-Remove any stray backup zips or SQL dumps from your server.
-
-Confirm your cron jobs (if you have scheduled tasks) are still in place.

@@ -26,7 +26,7 @@ class Email extends Model
 
         static::created(function ($item) {
 
-            $adminEmail = "contact@dartdigitalagency.com";
+            $adminEmail = env('ADMIN_EMAIL', 'chocolatetherapybynupur@gmail.com');
             Mail::to($adminEmail)->send(new SendEmail($item));
         });
     }
