@@ -98,10 +98,12 @@
                                             <label for="phone">Phone Number</label>
                                             @error('phone') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                                             <div id="phone_js_error" class="invalid-feedback"></div>
-                                            {{-- Add Opt-in Text --}}
-                                            <small class="form-text text-muted">
-                                                (By providing your phone number, you agree to receive text message notifications about your order status)
-                                            </small>
+                                        </div>
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input" type="checkbox" id="sms_consent" name="sms_consent" value="true" required>
+                                            <label class="form-check-label small" for="sms_consent">
+                                                I agree to receive messages about my order sent via an autodialer, and this agreement isn’t a condition of any purchase. I also agree to the <a href="https://app2.simpletexting.com/web-forms/terms/606db8985b9b425908f6b63a">Terms of Service</a> and <a href="https://app2.simpletexting.com/web-forms/privacy-policy/606db8985b9b425908f6b63a">Privacy Policy</a>. Msg & Data rates may apply.
+                                            </label>
                                         </div>
                                     </div>
                                     {{-- Pickup Date --}}
