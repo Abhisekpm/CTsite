@@ -18,6 +18,9 @@ use libphonenumber\PhoneNumberUtil;
 use libphonenumber\PhoneNumberFormat;
 use libphonenumber\NumberParseException;
 use Illuminate\Validation\ValidationException; // Needed to throw validation error
+use Illuminate\Support\Facades\Mail; // Import Mail facade
+use App\Mail\CustomerOrderConfirmationMail; // Import custom Mailable
+use App\Mail\AdminOrderNotificationMail; // Import admin Mailable
 
 class OrderController extends Controller
 {
@@ -62,6 +65,7 @@ class OrderController extends Controller
             'cake_flavor' => 'required|string|max:255',
             'message_on_cake' => 'nullable|string|max:255',
             'custom_decoration' => 'nullable|string',
+            'sms_consent' => 'nullable|boolean', // Added for consent checkbox
             // Validation for multiple images
             'decoration_images' => 'nullable|array', // Must be an array if present
             'decoration_images.*' => 'image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120', // Each file: image, specific types, max 5MB
@@ -74,6 +78,9 @@ class OrderController extends Controller
             'decoration_images.*.mimes' => 'Only JPG, PNG, GIF, SVG, WebP images are allowed.',
             'decoration_images.*.max' => 'One of the uploaded images exceeds the 5MB size limit.',
         ]);
+
+        // Convert sms_consent to boolean
+        $validatedData['sms_consent'] = filter_var($request->input('sms_consent'), FILTER_VALIDATE_BOOLEAN);
 
         // --- ADD BACK: Normalize Phone Number ---
         $rawPhoneNumber = $validatedData['phone'];
@@ -130,57 +137,58 @@ class OrderController extends Controller
                 }
             }
 
-            // --- Send SMS Notifications (Keep existing logic) --- 
-            if ($order) { 
+            // --- Send Notifications ---
+            if ($order) {
                 try {
-                    $twilioSid = env('TWILIO_SID');
-                    $twilioToken = env('TWILIO_TOKEN');
-                    $twilioFrom = env('TWILIO_FROM');
                     $adminPhone = env('ADMIN_PHONE');
-                    $customerPhone = $order->phone; // Use the NOW NORMALIZED phone number from the order
+                    $adminEmail = env('ADMIN_EMAIL');
 
-                    if ($twilioSid && $twilioToken && $twilioFrom && $adminPhone && $customerPhone) {
-                        $twilio = new TwilioClient($twilioSid, $twilioToken);
+                    // --- Customer Notification ---
+                    if ($order->sms_consent) {
+                        // Send SMS to Customer
+                        $twilioSid = env('TWILIO_SID');
+                        $twilioToken = env('TWILIO_TOKEN');
+                        $twilioFrom = env('TWILIO_FROM');
+                        $customerPhone = $order->phone;
 
-                        // 1. Customer SMS (Pending)
-                        $customerMessage = "Thanks, {$order->customer_name}! Your custom cake request (#{$order->id}) is received and pending review. We'll text you with pricing soon.";
-                        $twilio->messages->create(
-                            $customerPhone, // To customer
-                            [
-                                'from' => $twilioFrom,
-                                'body' => $customerMessage
-                            ]
-                        );
-
-                        // 2. Admin SMS (New Order)
-                        $adminMessage = "New custom cake request (#{$order->id}) from {$order->customer_name} for pickup on {$order->pickup_date}. Needs pricing.";
-                         $twilio->messages->create(
-                            $adminPhone, // To admin
-                            [
-                                'from' => $twilioFrom,
-                                'body' => $adminMessage
-                            ]
-                        );
-
+                        if ($twilioSid && $twilioToken && $twilioFrom && $customerPhone) {
+                            $twilio = new TwilioClient($twilioSid, $twilioToken);
+                            $customerMessage = "Thanks, {$order->customer_name}! Your custom cake request (#{$order->id}) is received and pending review. We'll text you with pricing soon.";
+                            $twilio->messages->create($customerPhone, ['from' => $twilioFrom, 'body' => $customerMessage]);
+                        } else {
+                            logger()->warning('Twilio SMS not sent for order #' . $order->id . '. Missing Twilio config in .env');
+                        }
                     } else {
-                         logger()->warning('Twilio SMS not sent for order #' . $order->id . '. Missing Twilio/Admin config in .env');
+                        // Send Email to Customer
+                        Mail::to($order->email)->send(new CustomerOrderConfirmationMail($order));
+                    }
+
+                    // --- Admin Notification ---
+                    if ($adminPhone) {
+                        // Send SMS to Admin
+                        $twilio = new TwilioClient(env('TWILIO_SID'), env('TWILIO_TOKEN'));
+                        $adminMessage = "New custom cake request (#{$order->id}) from {$order->customer_name} for pickup on {$order->pickup_date}. Needs pricing.";
+                        $twilio->messages->create($adminPhone, ['from' => env('TWILIO_FROM'),'body' => $adminMessage]);
+                    }
+
+                    if ($adminEmail) {
+                        // Send Email to Admin
+                        Mail::to($adminEmail)->send(new AdminOrderNotificationMail($order));
                     }
 
                 } catch (TwilioException $e) {
-                    logger()->error('TwilioException sending SMS for order #' . ($order ? $order->id : 'N/A') . ': ' . $e->getMessage());
-                    // Don't stop execution, but log the error
+                    logger()->error('TwilioException sending notification for order #' . $order->id . ': ' . $e->getMessage());
                 } catch (\Exception $e) {
-                    logger()->error('General Exception sending SMS for order #' . ($order ? $order->id : 'N/A') . ': ' . $e->getMessage());
-                     // Don't stop execution, but log the error
+                    logger()->error('General Exception sending notification for order #' . $order->id . ': ' . $e->getMessage());
                 }
             }
-            // --- End SMS Notifications --- 
+            // --- End Notifications ---
 
             // If everything worked, commit the transaction
             DB::commit();
 
             // Redirect back with success message
-            return redirect()->route('custom-order.create')->with('success', 'Thank you for your order request! We will text you shortly to confirm details and pricing.');
+            return redirect()->route('custom-order.create')->with('success', 'Thank you for your order request! We will text/email you shortly to confirm details and pricing.');
 
         } catch (\Exception $e) {
             // If any error occurred, roll back the transaction

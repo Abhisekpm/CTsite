@@ -100,9 +100,9 @@
                                             <div id="phone_js_error" class="invalid-feedback"></div>
                                         </div>
                                         <div class="form-check mt-2">
-                                            <input class="form-check-input" type="checkbox" id="sms_consent" name="sms_consent" value="true" required>
+                                            <input class="form-check-input" type="checkbox" id="sms_consent" name="sms_consent" value="true">
                                             <label class="form-check-label small" for="sms_consent">
-                                                I agree to receive messages about my order sent via an autodialer, and this agreement isn’t a condition of any purchase. I also agree to the <a href="https://app2.simpletexting.com/web-forms/terms/606db8985b9b425908f6b63a">Terms of Service</a> and <a href="https://app2.simpletexting.com/web-forms/privacy-policy/606db8985b9b425908f6b63a">Privacy Policy</a>. Msg & Data rates may apply.
+                                                I agree to receive messages about my order from Chocolate Therapy sent via an autodialer, and this agreement isn’t a condition of any purchase. I also agree to the <a href="https://app2.simpletexting.com/web-forms/terms/606db8985b9b425908f6b63a">Terms of Service</a> and <a href="https://app2.simpletexting.com/web-forms/privacy-policy/606db8985b9b425908f6b63a">Privacy Policy</a>. Msg & Data rates may apply. Text STOP to unsubscribe, or HELP for assistance.
                                             </label>
                                         </div>
                                     </div>
