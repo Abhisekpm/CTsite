@@ -52,6 +52,9 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
+        // Manually set sms_consent to a boolean based on its presence in the request
+        $request->merge(['sms_consent' => $request->has('sms_consent')]);
+
         // Define validation rules
         $validatedData = $request->validate([
             'customer_name' => 'required|string|max:255',
@@ -65,7 +68,7 @@ class OrderController extends Controller
             'cake_flavor' => 'required|string|max:255',
             'message_on_cake' => 'nullable|string|max:255',
             'custom_decoration' => 'nullable|string',
-            'sms_consent' => 'nullable|boolean', // Added for consent checkbox
+            'sms_consent' => 'boolean', // Now we can use the simple boolean rule
             // Validation for multiple images
             'decoration_images' => 'nullable|array', // Must be an array if present
             'decoration_images.*' => 'image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120', // Each file: image, specific types, max 5MB
@@ -78,9 +81,6 @@ class OrderController extends Controller
             'decoration_images.*.mimes' => 'Only JPG, PNG, GIF, SVG, WebP images are allowed.',
             'decoration_images.*.max' => 'One of the uploaded images exceeds the 5MB size limit.',
         ]);
-
-        // Convert sms_consent to boolean
-        $validatedData['sms_consent'] = filter_var($request->input('sms_consent'), FILTER_VALIDATE_BOOLEAN);
 
         // --- ADD BACK: Normalize Phone Number ---
         $rawPhoneNumber = $validatedData['phone'];
