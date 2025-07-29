@@ -23,7 +23,11 @@ class MenuController extends Controller
     {
         $testimonials = Testimonial::all();
         $settings = Settings::get()->first();
-        $menu_cat = MenuCategory::where('slug', $slug)->get()->first();
+        $menu_cat = MenuCategory::where('slug', $slug)->first();
+
+        if (!$menu_cat) {
+            abort(404);
+        }
 
         $menus = Menu::where('menu_category_id', $menu_cat->id)->get();
 

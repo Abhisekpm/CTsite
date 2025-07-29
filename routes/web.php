@@ -260,3 +260,4 @@ Route::group(['prefix' => 'admin'], function () {
 // which usually includes CSRF protection. If placing inside `web` group,
 // ensure CSRF is excluded for this route in App/Http/Middleware/VerifyCsrfToken.php
 Route::post('/webhooks/twilio/sms', [TwilioWebhookController::class, 'handle'])->name('webhooks.twilio.sms');
+Route::post('/webhooks/simpletexting/sms', [\App\Http\Controllers\SimpleTextingWebhookController::class, 'handle'])->name('webhooks.simpletexting.sms');

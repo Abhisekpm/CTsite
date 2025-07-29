@@ -11,8 +11,7 @@ use Illuminate\Support\Facades\Validator; // Import Validator facade if needed f
 use Illuminate\Validation\Rule; // Import Rule for more complex rules like 'in'
 use App\Models\CustomOrder; // Import the CustomOrder model
 use Illuminate\Support\Facades\Storage; // Import Storage facade for file uploads
-use Twilio\Rest\Client as TwilioClient; // Import Twilio Client
-use Twilio\Exceptions\TwilioException; // Import Twilio Exception for specific catching
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB; // Import DB facade for potential transaction
 use libphonenumber\PhoneNumberUtil;
 use libphonenumber\PhoneNumberFormat;
@@ -142,21 +141,26 @@ class OrderController extends Controller
                 try {
                     $adminPhone = env('ADMIN_PHONE');
                     $adminEmail = env('ADMIN_EMAIL');
+                    $simpleTextingApiKey = env('SIMPLETEXTING_API_KEY');
 
                     // --- Customer Notification ---
                     if ($order->sms_consent) {
                         // Send SMS to Customer
-                        $twilioSid = env('TWILIO_SID');
-                        $twilioToken = env('TWILIO_TOKEN');
-                        $twilioFrom = env('TWILIO_FROM');
                         $customerPhone = $order->phone;
 
-                        if ($twilioSid && $twilioToken && $twilioFrom && $customerPhone) {
-                            $twilio = new TwilioClient($twilioSid, $twilioToken);
+                        if ($simpleTextingApiKey && $customerPhone) {
                             $customerMessage = "Thanks, {$order->customer_name}! Your custom cake request (#{$order->id}) is received and pending review. We'll text you with pricing soon.";
-                            $twilio->messages->create($customerPhone, ['from' => $twilioFrom, 'body' => $customerMessage]);
+                            
+                            Http::withHeaders([
+                                'Authorization' => 'Bearer ' . $simpleTextingApiKey,
+                                'Content-Type' => 'application/json'
+                            ])->post('https://api-app2.simpletexting.com/v2/api/messages', [
+                                'contactPhone' => $customerPhone,
+                                'mode' => 'AUTO',
+                                'text' => $customerMessage
+                            ]);
                         } else {
-                            logger()->warning('Twilio SMS not sent for order #' . $order->id . '. Missing Twilio config in .env');
+                            logger()->warning('SimpleTexting SMS not sent for order #' . $order->id . '. Missing API key in .env');
                         }
                     } else {
                         // Send Email to Customer
@@ -164,11 +168,18 @@ class OrderController extends Controller
                     }
 
                     // --- Admin Notification ---
-                    if ($adminPhone) {
+                    if ($adminPhone && $simpleTextingApiKey) {
                         // Send SMS to Admin
-                        $twilio = new TwilioClient(env('TWILIO_SID'), env('TWILIO_TOKEN'));
                         $adminMessage = "New custom cake request (#{$order->id}) from {$order->customer_name} for pickup on {$order->pickup_date}. Needs pricing.";
-                        $twilio->messages->create($adminPhone, ['from' => env('TWILIO_FROM'),'body' => $adminMessage]);
+                        
+                        Http::withHeaders([
+                            'Authorization' => 'Bearer ' . $simpleTextingApiKey,
+                            'Content-Type' => 'application/json'
+                        ])->post('https://api-app2.simpletexting.com/v2/api/messages', [
+                            'contactPhone' => $adminPhone,
+                            'mode' => 'AUTO',
+                            'text' => $adminMessage
+                        ]);
                     }
 
                     if ($adminEmail) {
@@ -176,8 +187,6 @@ class OrderController extends Controller
                         Mail::to($adminEmail)->send(new AdminOrderNotificationMail($order));
                     }
 
-                } catch (TwilioException $e) {
-                    logger()->error('TwilioException sending notification for order #' . $order->id . ': ' . $e->getMessage());
                 } catch (\Exception $e) {
                     logger()->error('General Exception sending notification for order #' . $order->id . ': ' . $e->getMessage());
                 }

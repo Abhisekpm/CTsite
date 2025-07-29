@@ -6,8 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CustomOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon; // Added Carbon for date comparison
-use Twilio\Rest\Client as TwilioClient; // Import Twilio Client
-use Twilio\Exceptions\TwilioException; // Import Twilio Exception
+use Illuminate\Support\Facades\Http;
 use Exception; // Import base Exception
 use Illuminate\Validation\Rule; // Import Rule for validation
 
@@ -98,36 +97,35 @@ class OrderController extends Controller
             // --- Trigger Customer SMS with Price (only if status became 'priced' or was already 'priced') ---
             if ($order->status == 'priced') {
                 try {
-                    $twilioSid = env('TWILIO_SID');
-                    $twilioToken = env('TWILIO_TOKEN');
-                    $twilioFrom = env('TWILIO_FROM');
+                    $simpleTextingApiKey = env('SIMPLETEXTING_API_KEY');
                     $customerPhone = $order->phone; // Ensure E.164 format if possible
 
-                    if ($twilioSid && $twilioToken && $twilioFrom && $customerPhone) {
-                        $twilio = new TwilioClient($twilioSid, $twilioToken);
-
+                    if ($simpleTextingApiKey && $customerPhone) {
                         $formattedPrice = number_format($order->price, 2);
-                        $shopPhone = env('ADMIN_PHONE', 'our shop'); // Get admin/shop phone or default
+                        
+                        $messageBody = "Your custom cake order #{$order->id} is priced at $${formattedPrice}. Please pay a deposit of $20 via Zelle (5179806354) or Venmo (@Nupur-Kundalia) and reply YES here to confirm. If there are questions contact the bakery at (267)-541-8620";
 
-                        $messageBody = "Your custom cake order #{$order->id} is priced at $${formattedPrice}. Please pay a deposit of$20 via Zelle (5179806354) or Venmo (@Nupur-Kundalia) and reply YES here to confirm. If there are questions contact the bakery at (267)-541-8620";
+                        $response = Http::withHeaders([
+                            'Authorization' => 'Bearer ' . $simpleTextingApiKey,
+                            'Content-Type' => 'application/json'
+                        ])->post('https://api-app2.simpletexting.com/v2/api/messages', [
+                            'contactPhone' => $customerPhone,
+                            'mode' => 'AUTO',
+                            'text' => $messageBody
+                        ]);
 
-                        $twilio->messages->create(
-                            $customerPhone, // To customer
-                            [
-                                'from' => $twilioFrom,
-                                'body' => $messageBody
-                            ]
-                        );
-                        $smsSent = true;
-                        logger()->info("Pricing SMS sent for order #{$order->id}.");
+                        if ($response->successful()) {
+                            $smsSent = true;
+                            logger()->info("Pricing SMS sent for order #{$order->id}.");
+                        } else {
+                            $smsError = 'SimpleTexting Error: ' . $response->body();
+                            logger()->error('SimpleTexting error sending pricing SMS for order #' . $order->id . ': ' . $response->body());
+                        }
 
                     } else {
-                         $smsError = 'Twilio SMS not sent. Missing Twilio config in .env';
-                         logger()->warning('Twilio SMS not sent for order #' . $order->id . '. Missing Twilio/Customer config.');
+                         $smsError = 'SimpleTexting SMS not sent. Missing API key in .env';
+                         logger()->warning('SimpleTexting SMS not sent for order #' . $order->id . '. Missing API key.');
                     }
-                } catch (TwilioException $e) {
-                    $smsError = 'Twilio Error: ' . $e->getMessage();
-                    logger()->error('TwilioException sending pricing SMS for order #' . $order->id . ': ' . $e->getMessage());
                 } catch (Exception $e) { // Catch general exceptions during SMS sending
                     $smsError = 'SMS Error: ' . $e->getMessage();
                     logger()->error('General Exception sending pricing SMS for order #' . $order->id . ': ' . $e->getMessage());
@@ -287,38 +285,38 @@ class OrderController extends Controller
         $smsError = null;
 
         try {
-            $twilioSid = env('TWILIO_SID');
-            $twilioToken = env('TWILIO_TOKEN');
-            $twilioFrom = env('TWILIO_FROM');
+            $simpleTextingApiKey = env('SIMPLETEXTING_API_KEY');
             $customerPhone = $order->phone;
 
-            if ($twilioSid && $twilioToken && $twilioFrom && $customerPhone) {
-                $twilio = new TwilioClient($twilioSid, $twilioToken);
-
+            if ($simpleTextingApiKey && $customerPhone) {
                 $pickupDate = Carbon::parse($order->pickup_date)->format('l, F jS');
                 $pickupTime = Carbon::parse($order->pickup_time)->format('h:i A');
                 
                 $messageBody = "Reminder: Your cake order #{$order->id} from Chocolate Therapy is scheduled for pickup on {$pickupDate} at {$pickupTime}. If you have any questions, please contact us at (267)541-8620.";
 
-                $twilio->messages->create(
-                    $customerPhone,
-                    [
-                        'from' => $twilioFrom,
-                        'body' => $messageBody
-                    ]
-                );
-                $smsSent = true;
-                logger()->info("Pickup reminder SMS sent for order #{$order->id}.");
-                return redirect()->route('admin.orders.show', $order)->with('success', 'Pickup reminder SMS sent successfully.');
+                $response = Http::withHeaders([
+                    'Authorization' => 'Bearer ' . $simpleTextingApiKey,
+                    'Content-Type' => 'application/json'
+                ])->post('https://api-app2.simpletexting.com/v2/api/messages', [
+                    'contactPhone' => $customerPhone,
+                    'mode' => 'AUTO',
+                    'text' => $messageBody
+                ]);
+
+                if ($response->successful()) {
+                    $smsSent = true;
+                    logger()->info("Pickup reminder SMS sent for order #{$order->id}.");
+                    return redirect()->route('admin.orders.show', $order)->with('success', 'Pickup reminder SMS sent successfully.');
+                } else {
+                    $smsError = 'SimpleTexting Error: ' . $response->body();
+                    logger()->error('SimpleTexting error sending pickup reminder for order #' . $order->id . ': ' . $response->body());
+                    return redirect()->route('admin.orders.show', $order)->with('error', 'Failed to send reminder: ' . $smsError);
+                }
             } else {
-                $smsError = 'Twilio SMS not sent. Missing Twilio config in .env or customer phone.';
-                logger()->warning('Twilio SMS not sent for order #' . $order->id . '. Missing Twilio/Customer config for reminder.');
+                $smsError = 'SimpleTexting SMS not sent. Missing API key in .env or customer phone.';
+                logger()->warning('SimpleTexting SMS not sent for order #' . $order->id . '. Missing API key or customer phone for reminder.');
                 return redirect()->route('admin.orders.show', $order)->with('error', $smsError);
             }
-        } catch (TwilioException $e) {
-            $smsError = 'Twilio Error: ' . $e->getMessage();
-            logger()->error('TwilioException sending pickup reminder for order #' . $order->id . ': ' . $e->getMessage());
-            return redirect()->route('admin.orders.show', $order)->with('error', 'Failed to send reminder: ' . $smsError);
         } catch (Exception $e) {
             logger()->error('General Exception sending pickup reminder for order #' . $order->id . ': ' . $e->getMessage());
             return redirect()->route('admin.orders.show', $order)->with('error', 'An unexpected error occurred while sending the reminder.');
