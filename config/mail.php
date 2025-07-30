@@ -41,13 +41,14 @@ return [
             'encryption' => env('MAIL_ENCRYPTION', 'tls'),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
-            'timeout' => null,
+            'timeout' => 60,
+            'auth_mode' => null,
             'local_domain' => env('MAIL_EHLO_DOMAIN'),
             'stream' => [
                 'ssl' => [
-                    'verify_peer' => false,
-                    'verify_peer_name' => false,
-                    'allow_self_signed' => true,
+                    'verify_peer' => env('MAIL_VERIFY_PEER', true),
+                    'verify_peer_name' => env('MAIL_VERIFY_PEER_NAME', true),
+                    'allow_self_signed' => env('MAIL_ALLOW_SELF_SIGNED', false),
                 ],
             ],
         ],
