@@ -7,6 +7,8 @@ use App\Models\CustomOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon; // Added Carbon for date comparison
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail; // Import Mail facade
+use App\Mail\CustomerOrderPricingMail; // Import pricing Mailable
 use Exception; // Import base Exception
 use Illuminate\Validation\Rule; // Import Rule for validation
 
@@ -94,9 +96,23 @@ class OrderController extends Controller
             }
             $order->save();
 
-            // --- Trigger Customer SMS with Price (only if status became 'priced' or was already 'priced') ---
+            // --- Trigger Customer Notifications with Price (only if status became 'priced' or was already 'priced') ---
             if ($order->status == 'priced') {
+                $emailSent = false;
+                $emailError = null;
+                
                 try {
+                    // Always send email notification for pricing
+                    Mail::to($order->email)->send(new CustomerOrderPricingMail($order));
+                    $emailSent = true;
+                    logger()->info("Pricing email sent for order #{$order->id}.");
+                } catch (Exception $e) {
+                    $emailError = 'Email Error: ' . $e->getMessage();
+                    logger()->error('Exception sending pricing email for order #' . $order->id . ': ' . $e->getMessage());
+                }
+                
+                try {
+                    // Send SMS notification
                     $simpleTextingApiKey = env('SIMPLETEXTING_API_KEY');
                     $customerPhone = $order->phone; // Ensure E.164 format if possible
 
@@ -133,7 +149,24 @@ class OrderController extends Controller
             }
             // --- End SMS Sending Logic ---
 
-            $successMessage = 'Order price updated.' . ($smsSent ? ' SMS notification sent.' : ($smsError ? ' SMS failed: ' . $smsError : ' No SMS sent (status not \'priced\').'));
+            $notificationStatus = [];
+            if ($emailSent) {
+                $notificationStatus[] = 'Email sent';
+            } elseif ($emailError) {
+                $notificationStatus[] = 'Email failed: ' . $emailError;
+            }
+            
+            if ($smsSent) {
+                $notificationStatus[] = 'SMS sent';
+            } elseif ($smsError) {
+                $notificationStatus[] = 'SMS failed: ' . $smsError;
+            }
+            
+            $successMessage = 'Order price updated.';
+            if (!empty($notificationStatus)) {
+                $successMessage .= ' ' . implode(', ', $notificationStatus) . '.';
+            }
+            
             return redirect()->route('admin.orders.show', $order)->with('success', $successMessage);
 
         } catch (Exception $e) { // Catch errors during order update itself

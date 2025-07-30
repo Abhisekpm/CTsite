@@ -144,8 +144,11 @@ class OrderController extends Controller
                     $simpleTextingApiKey = env('SIMPLETEXTING_API_KEY');
 
                     // --- Customer Notification ---
+                    // Always send email confirmation
+                    Mail::to($order->email)->send(new CustomerOrderConfirmationMail($order));
+                    
+                    // Send SMS only if customer consented
                     if ($order->sms_consent) {
-                        // Send SMS to Customer
                         $customerPhone = $order->phone;
 
                         if ($simpleTextingApiKey && $customerPhone) {
@@ -162,9 +165,6 @@ class OrderController extends Controller
                         } else {
                             logger()->warning('SimpleTexting SMS not sent for order #' . $order->id . '. Missing API key in .env');
                         }
-                    } else {
-                        // Send Email to Customer
-                        Mail::to($order->email)->send(new CustomerOrderConfirmationMail($order));
                     }
 
                     // --- Admin Notification ---
