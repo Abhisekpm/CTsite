@@ -136,68 +136,8 @@ class OrderController extends Controller
                 }
             }
 
-            // --- Send Notifications ---
-            if ($order) {
-                try {
-                    $adminPhone = env('ADMIN_PHONE');
-                    $adminEmail = env('ADMIN_EMAIL');
-                    $simpleTextingApiKey = env('SIMPLETEXTING_API_KEY');
-
-                    // --- Customer Notification ---
-                    // Always send email confirmation
-                    Mail::to($order->email)->send(new CustomerOrderConfirmationMail($order));
-                    
-                    // Send SMS only if customer consented
-                    if ($order->sms_consent) {
-                        $customerPhone = $order->phone;
-
-                        if ($simpleTextingApiKey && $customerPhone) {
-                            $customerMessage = "Thanks, {$order->customer_name}! Your custom cake request (#{$order->id}) is received and pending review. We'll text you with pricing soon.";
-                            
-                            Http::withHeaders([
-                                'Authorization' => 'Bearer ' . $simpleTextingApiKey,
-                                'Content-Type' => 'application/json'
-                            ])->post('https://api-app2.simpletexting.com/v2/api/messages', [
-                                'contactPhone' => $customerPhone,
-                                'mode' => 'AUTO',
-                                'text' => $customerMessage
-                            ]);
-                        } else {
-                            logger()->warning('SimpleTexting SMS not sent for order #' . $order->id . '. Missing API key in .env');
-                        }
-                    }
-
-                    // --- Admin Notification ---
-                    if ($adminPhone && $simpleTextingApiKey) {
-                        // Send SMS to Admin
-                        $adminMessage = "New custom cake request (#{$order->id}) from {$order->customer_name} for pickup on {$order->pickup_date}. Needs pricing.";
-                        
-                        Http::withHeaders([
-                            'Authorization' => 'Bearer ' . $simpleTextingApiKey,
-                            'Content-Type' => 'application/json'
-                        ])->post('https://api-app2.simpletexting.com/v2/api/messages', [
-                            'contactPhone' => $adminPhone,
-                            'mode' => 'AUTO',
-                            'text' => $adminMessage
-                        ]);
-                    }
-
-                    if ($adminEmail) {
-                        // Send Email to Admin
-                        Mail::to($adminEmail)->send(new AdminOrderNotificationMail($order));
-                    }
-
-                } catch (\Exception $e) {
-                    logger()->error('General Exception sending notification for order #' . $order->id . ': ' . $e->getMessage());
-                }
-            }
-            // --- End Notifications ---
-
-            // If everything worked, commit the transaction
+            // If everything worked, commit the transaction BEFORE sending notifications
             DB::commit();
-
-            // Redirect back with success message
-            return redirect()->route('custom-order.create')->with('success', 'Thank you for your order request! We will text/email you shortly to confirm details and pricing.');
 
         } catch (\Exception $e) {
             // If any error occurred, roll back the transaction
@@ -212,5 +152,65 @@ class OrderController extends Controller
             // Redirect back with an error message
             return redirect()->route('custom-order.create')->with('error', 'Sorry, there was an issue submitting your order. Please try again or contact us directly.')->withInput();
         }
+
+        // --- Send Notifications AFTER successful database commit ---
+        if ($order) {
+            try {
+                $adminPhone = env('ADMIN_PHONE');
+                $adminEmail = env('ADMIN_EMAIL');
+                $simpleTextingApiKey = env('SIMPLETEXTING_API_KEY');
+
+                // --- Customer Notification ---
+                // Always send email confirmation
+                Mail::to($order->email)->send(new CustomerOrderConfirmationMail($order));
+                
+                // Send SMS only if customer consented
+                if ($order->sms_consent) {
+                    $customerPhone = $order->phone;
+
+                    if ($simpleTextingApiKey && $customerPhone) {
+                        $customerMessage = "Thanks, {$order->customer_name}! Your custom cake request (#{$order->id}) is received and pending review. We'll text you with pricing soon.";
+                        
+                        Http::withHeaders([
+                            'Authorization' => 'Bearer ' . $simpleTextingApiKey,
+                            'Content-Type' => 'application/json'
+                        ])->post('https://api-app2.simpletexting.com/v2/api/messages', [
+                            'contactPhone' => $customerPhone,
+                            'mode' => 'AUTO',
+                            'text' => $customerMessage
+                        ]);
+                    } else {
+                        logger()->warning('SimpleTexting SMS not sent for order #' . $order->id . '. Missing API key in .env');
+                    }
+                }
+
+                // --- Admin Notification ---
+                if ($adminPhone && $simpleTextingApiKey) {
+                    // Send SMS to Admin
+                    $adminMessage = "New custom cake request (#{$order->id}) from {$order->customer_name} for pickup on {$order->pickup_date}. Needs pricing.";
+                    
+                    Http::withHeaders([
+                        'Authorization' => 'Bearer ' . $simpleTextingApiKey,
+                        'Content-Type' => 'application/json'
+                    ])->post('https://api-app2.simpletexting.com/v2/api/messages', [
+                        'contactPhone' => $adminPhone,
+                        'mode' => 'AUTO',
+                        'text' => $adminMessage
+                    ]);
+                }
+
+                if ($adminEmail) {
+                    // Send Email to Admin
+                    Mail::to($adminEmail)->send(new AdminOrderNotificationMail($order));
+                }
+
+            } catch (\Exception $e) {
+                logger()->error('General Exception sending notification for order #' . $order->id . ': ' . $e->getMessage());
+                // Note: Order is already saved, so we continue with success message even if notifications fail
+            }
+        }
+
+        // Redirect back with success message
+        return redirect()->route('custom-order.create')->with('success', 'Thank you for your order request! We will text/email you shortly to confirm details and pricing.');
     }
 }
