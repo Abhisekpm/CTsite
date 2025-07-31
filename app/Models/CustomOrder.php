@@ -28,6 +28,7 @@ class CustomOrder extends Model
         'custom_decoration',
         'decoration_image_path',
         'allergies',
+        'sms_consent', // Added missing SMS consent field
         'status', // Although it defaults, allow it to be fillable if needed later
         'price', // Added price
     ];

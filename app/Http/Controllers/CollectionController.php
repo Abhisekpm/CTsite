@@ -15,7 +15,7 @@ class CollectionController extends Controller
         $search = $request->input('search');
         $settings = Settings::get()->first();
         if ($search) {
-            $ccat = Gallery::query()->where('name', 'LIKE', "%{$search}%")->orWhere('description', 'LIKE', "%{$search}%")->orderBy('order', 'asc')->paginate(16);
+            $ccat = Gallery::query()->where('name', 'LIKE', "%{$search}%")->orderBy('order', 'asc')->paginate(16);
             if($ccat->count() < 1)
             {
                 $ccat = GallCatId::query()->where('name', 'LIKE', "%{$search}%")->orderBy('order', 'asc')->paginate(16);
@@ -33,7 +33,7 @@ class CollectionController extends Controller
         $search = $request->input('search');
         $ccat = GallCatId::where('slug', $slug)->first();
         if ($search) {
-            $collection = Gallery::query()->where('name', 'LIKE', "%{$search}%")->orWhere('description', 'LIKE', "%{$search}%")->orderBy('created_at', 'desc')->paginate(16);
+            $collection = Gallery::query()->where('name', 'LIKE', "%{$search}%")->orderBy('created_at', 'desc')->paginate(16);
             $allcat = GallCatId::orderBy('order', 'asc')->get();
         } else {
             $collection = Gallery::where('gal_cat_id', $ccat->id)->orderBy('created_at', 'desc')->get();

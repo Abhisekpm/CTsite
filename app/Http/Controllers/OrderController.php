@@ -52,7 +52,9 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         // Manually set sms_consent to a boolean based on its presence in the request
-        $request->merge(['sms_consent' => $request->has('sms_consent')]);
+        $smsConsentValue = $request->has('sms_consent');
+        logger()->info("SMS consent processing: checkbox present = " . ($request->has('sms_consent') ? 'true' : 'false') . ", setting value = " . ($smsConsentValue ? 'true' : 'false'));
+        $request->merge(['sms_consent' => $smsConsentValue]);
 
         // Define validation rules
         $validatedData = $request->validate([
@@ -165,13 +167,15 @@ class OrderController extends Controller
                 Mail::to($order->email)->send(new CustomerOrderConfirmationMail($order));
                 
                 // Send SMS only if customer consented
+                logger()->info("SMS consent check for order #{$order->id}: sms_consent = " . ($order->sms_consent ? 'true' : 'false') . " (value: " . $order->sms_consent . ")");
+                
                 if ($order->sms_consent) {
                     $customerPhone = $order->phone;
 
                     if ($simpleTextingApiKey && $customerPhone) {
                         $customerMessage = "Thanks, {$order->customer_name}! Your custom cake request (#{$order->id}) is received and pending review. We'll text you with pricing soon.";
                         
-                        Http::withHeaders([
+                        $response = Http::withHeaders([
                             'Authorization' => 'Bearer ' . $simpleTextingApiKey,
                             'Content-Type' => 'application/json'
                         ])->post('https://api-app2.simpletexting.com/v2/api/messages', [
@@ -179,6 +183,12 @@ class OrderController extends Controller
                             'mode' => 'AUTO',
                             'text' => $customerMessage
                         ]);
+
+                        if ($response->successful()) {
+                            logger()->info("Initial order SMS sent for order #{$order->id}.");
+                        } else {
+                            logger()->error('SimpleTexting error sending initial SMS for order #' . $order->id . ': ' . $response->body());
+                        }
                     } else {
                         logger()->warning('SimpleTexting SMS not sent for order #' . $order->id . '. Missing API key in .env');
                     }
@@ -189,7 +199,7 @@ class OrderController extends Controller
                     // Send SMS to Admin
                     $adminMessage = "New custom cake request (#{$order->id}) from {$order->customer_name} for pickup on {$order->pickup_date}. Needs pricing.";
                     
-                    Http::withHeaders([
+                    $adminResponse = Http::withHeaders([
                         'Authorization' => 'Bearer ' . $simpleTextingApiKey,
                         'Content-Type' => 'application/json'
                     ])->post('https://api-app2.simpletexting.com/v2/api/messages', [
@@ -197,6 +207,12 @@ class OrderController extends Controller
                         'mode' => 'AUTO',
                         'text' => $adminMessage
                     ]);
+
+                    if ($adminResponse->successful()) {
+                        logger()->info("Initial admin SMS sent for order #{$order->id}.");
+                    } else {
+                        logger()->error('SimpleTexting error sending initial admin SMS for order #' . $order->id . ': ' . $adminResponse->body());
+                    }
                 }
 
                 if ($adminEmail) {
