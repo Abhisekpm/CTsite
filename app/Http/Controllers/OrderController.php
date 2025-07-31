@@ -157,19 +157,23 @@ class OrderController extends Controller
 
         // --- Send Notifications AFTER successful database commit ---
         if ($order) {
-            try {
-                $adminPhone = env('ADMIN_PHONE');
-                $adminEmail = env('ADMIN_EMAIL');
-                $simpleTextingApiKey = env('SIMPLETEXTING_API_KEY');
+            $adminPhone = env('ADMIN_PHONE');
+            $adminEmail = env('ADMIN_EMAIL');
+            $simpleTextingApiKey = env('SIMPLETEXTING_API_KEY');
 
-                // --- Customer Notification ---
-                // Always send email confirmation
+            // --- Customer Email Notification (Independent) ---
+            try {
                 Mail::to($order->email)->send(new CustomerOrderConfirmationMail($order));
-                
-                // Send SMS only if customer consented
-                logger()->info("SMS consent check for order #{$order->id}: sms_consent = " . ($order->sms_consent ? 'true' : 'false') . " (value: " . $order->sms_consent . ")");
-                
-                if ($order->sms_consent) {
+                logger()->info("Customer email sent for order #{$order->id}.");
+            } catch (\Exception $e) {
+                logger()->error('Error sending customer email for order #' . $order->id . ': ' . $e->getMessage());
+            }
+
+            // --- Customer SMS Notification (Independent) ---
+            logger()->info("SMS consent check for order #{$order->id}: sms_consent = " . ($order->sms_consent ? 'true' : 'false') . " (value: " . $order->sms_consent . ")");
+            
+            if ($order->sms_consent) {
+                try {
                     $customerPhone = $order->phone;
 
                     if ($simpleTextingApiKey && $customerPhone) {
@@ -192,11 +196,14 @@ class OrderController extends Controller
                     } else {
                         logger()->warning('SimpleTexting SMS not sent for order #' . $order->id . '. Missing API key in .env');
                     }
+                } catch (\Exception $e) {
+                    logger()->error('Error sending customer SMS for order #' . $order->id . ': ' . $e->getMessage());
                 }
+            }
 
-                // --- Admin Notification ---
-                if ($adminPhone && $simpleTextingApiKey) {
-                    // Send SMS to Admin
+            // --- Admin SMS Notification (Independent) ---
+            if ($adminPhone && $simpleTextingApiKey) {
+                try {
                     $adminMessage = "New custom cake request (#{$order->id}) from {$order->customer_name} for pickup on {$order->pickup_date}. Needs pricing.";
                     
                     $adminResponse = Http::withHeaders([
@@ -213,16 +220,19 @@ class OrderController extends Controller
                     } else {
                         logger()->error('SimpleTexting error sending initial admin SMS for order #' . $order->id . ': ' . $adminResponse->body());
                     }
+                } catch (\Exception $e) {
+                    logger()->error('Error sending admin SMS for order #' . $order->id . ': ' . $e->getMessage());
                 }
+            }
 
-                if ($adminEmail) {
-                    // Send Email to Admin
+            // --- Admin Email Notification (Independent) ---
+            if ($adminEmail) {
+                try {
                     Mail::to($adminEmail)->send(new AdminOrderNotificationMail($order));
+                    logger()->info("Admin email sent for order #{$order->id}.");
+                } catch (\Exception $e) {
+                    logger()->error('Error sending admin email for order #' . $order->id . ': ' . $e->getMessage());
                 }
-
-            } catch (\Exception $e) {
-                logger()->error('General Exception sending notification for order #' . $order->id . ': ' . $e->getMessage());
-                // Note: Order is already saved, so we continue with success message even if notifications fail
             }
         }
 
