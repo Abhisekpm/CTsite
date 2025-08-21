@@ -275,6 +275,67 @@
                 autoResize(); // Initial resize on page load
             }
         });
+
+        // Prevent multiple form submissions for pricing form
+        const pricingForm = document.querySelector('form[action*="updatePrice"]');
+        const pricingButton = pricingForm ? pricingForm.querySelector('button[type="submit"]') : null;
+        let pricingSubmitting = false;
+
+        if (pricingForm && pricingButton) {
+            pricingForm.addEventListener('submit', function(event) {
+                if (pricingSubmitting) {
+                    event.preventDefault();
+                    return false;
+                }
+
+                pricingSubmitting = true;
+                pricingButton.disabled = true;
+                
+                const originalText = pricingButton.innerHTML;
+                pricingButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+                
+                // Re-enable after timeout as fallback
+                setTimeout(() => {
+                    if (pricingSubmitting) {
+                        pricingSubmitting = false;
+                        pricingButton.disabled = false;
+                        pricingButton.innerHTML = originalText;
+                    }
+                }, 30000);
+            });
+        }
+
+        // Prevent multiple clicks on pickup reminder button
+        const reminderButtons = document.querySelectorAll('form[action*="sendPickupReminder"] button[type="submit"]');
+        
+        reminderButtons.forEach(button => {
+            let reminderSubmitting = false;
+            const form = button.closest('form');
+            
+            if (form) {
+                form.addEventListener('submit', function(event) {
+                    if (reminderSubmitting) {
+                        event.preventDefault();
+                        return false;
+                    }
+
+                    reminderSubmitting = true;
+                    button.disabled = true;
+                    
+                    const originalText = button.innerHTML;
+                    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+                    
+                    // Re-enable after timeout as fallback
+                    setTimeout(() => {
+                        if (reminderSubmitting) {
+                            reminderSubmitting = false;
+                            button.disabled = false;
+                            button.innerHTML = originalText;
+                        }
+                    }, 30000);
+                });
+            }
+        });
     });
 </script>
 @endpush

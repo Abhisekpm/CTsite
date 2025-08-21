@@ -126,7 +126,7 @@ php artisan key:generate
 - Responsive design with Bootstrap 5 and custom SCSS
 
 ## Claude rules
-1. First think through the problem, read the codebase for relevant files, and write a plan to tasks/todo.md.
+1. First think through the problem, read the codebase for relevant files, and write a plan to todo.md.
 2. The plan should have a list of todo items that you can check off as you complete them
 3. Before you begin working, check in with me and I will verify the plan.
 4. Then, begin working on the todo items, marking them as complete as you go.

@@ -9,6 +9,8 @@ use Illuminate\Support\Carbon; // Added Carbon for date comparison
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail; // Import Mail facade
 use App\Mail\CustomerOrderPricingMail; // Import pricing Mailable
+use App\Jobs\SendPricingNotificationSMS; // Import pricing SMS job
+use App\Jobs\SendPickupReminderSMS; // Import pickup reminder SMS job
 use Exception; // Import base Exception
 use Illuminate\Validation\Rule; // Import Rule for validation
 
@@ -96,56 +98,21 @@ class OrderController extends Controller
             }
             $order->save();
 
-            // --- Trigger Customer Notifications with Price (only if status became 'priced' or was already 'priced') ---
+            // --- Queue Customer Notifications with Price (only if status became 'priced' or was already 'priced') ---
             if ($order->status == 'priced') {
-                $emailSent = false;
+                // Queue pricing email notification
+                Mail::to($order->email)->queue(new CustomerOrderPricingMail($order));
+                logger()->info("Pricing email queued for order #{$order->id}.");
+                
+                // Queue pricing SMS notification
+                SendPricingNotificationSMS::dispatch($order);
+                logger()->info("Pricing SMS queued for order #{$order->id}.");
+                
+                // Set success flags for UI feedback
+                $emailSent = true;
+                $smsSent = true;
                 $emailError = null;
-                
-                try {
-                    // Always send email notification for pricing
-                    Mail::to($order->email)->send(new CustomerOrderPricingMail($order));
-                    $emailSent = true;
-                    logger()->info("Pricing email sent for order #{$order->id}.");
-                } catch (Exception $e) {
-                    $emailError = 'Email Error: ' . $e->getMessage();
-                    logger()->error('Exception sending pricing email for order #' . $order->id . ': ' . $e->getMessage());
-                }
-                
-                try {
-                    // Send SMS notification
-                    $simpleTextingApiKey = env('SIMPLETEXTING_API_KEY');
-                    $customerPhone = $order->phone; // Ensure E.164 format if possible
-
-                    if ($simpleTextingApiKey && $customerPhone) {
-                        $formattedPrice = number_format($order->price, 2);
-                        
-                        $messageBody = "Your custom cake order #{$order->id} is priced at $${formattedPrice}. Please pay a deposit of $20 via Zelle (5179806354) or Venmo (@Nupur-Kundalia) and reply YES here to confirm. If there are questions contact the bakery at (267)-541-8620";
-
-                        $response = Http::withHeaders([
-                            'Authorization' => 'Bearer ' . $simpleTextingApiKey,
-                            'Content-Type' => 'application/json'
-                        ])->post('https://api-app2.simpletexting.com/v2/api/messages', [
-                            'contactPhone' => $customerPhone,
-                            'mode' => 'AUTO',
-                            'text' => $messageBody
-                        ]);
-
-                        if ($response->successful()) {
-                            $smsSent = true;
-                            logger()->info("Pricing SMS sent for order #{$order->id}.");
-                        } else {
-                            $smsError = 'SimpleTexting Error: ' . $response->body();
-                            logger()->error('SimpleTexting error sending pricing SMS for order #' . $order->id . ': ' . $response->body());
-                        }
-
-                    } else {
-                         $smsError = 'SimpleTexting SMS not sent. Missing API key in .env';
-                         logger()->warning('SimpleTexting SMS not sent for order #' . $order->id . '. Missing API key.');
-                    }
-                } catch (Exception $e) { // Catch general exceptions during SMS sending
-                    $smsError = 'SMS Error: ' . $e->getMessage();
-                    logger()->error('General Exception sending pricing SMS for order #' . $order->id . ': ' . $e->getMessage());
-                }
+                $smsError = null;
             }
             // --- End SMS Sending Logic ---
 
@@ -314,45 +281,16 @@ class OrderController extends Controller
             return redirect()->route('admin.orders.show', $order)->with('error', 'Pickup reminder can only be sent for priced or confirmed orders.');
         }
 
-        $smsSent = false;
-        $smsError = null;
-
         try {
-            $simpleTextingApiKey = env('SIMPLETEXTING_API_KEY');
-            $customerPhone = $order->phone;
-
-            if ($simpleTextingApiKey && $customerPhone) {
-                $pickupDate = Carbon::parse($order->pickup_date)->format('l, F jS');
-                $pickupTime = Carbon::parse($order->pickup_time)->format('h:i A');
-                
-                $messageBody = "Reminder: Your cake order #{$order->id} from Chocolate Therapy is scheduled for pickup on {$pickupDate} at {$pickupTime}. If you have any questions, please contact us at (267)541-8620.";
-
-                $response = Http::withHeaders([
-                    'Authorization' => 'Bearer ' . $simpleTextingApiKey,
-                    'Content-Type' => 'application/json'
-                ])->post('https://api-app2.simpletexting.com/v2/api/messages', [
-                    'contactPhone' => $customerPhone,
-                    'mode' => 'AUTO',
-                    'text' => $messageBody
-                ]);
-
-                if ($response->successful()) {
-                    $smsSent = true;
-                    logger()->info("Pickup reminder SMS sent for order #{$order->id}.");
-                    return redirect()->route('admin.orders.show', $order)->with('success', 'Pickup reminder SMS sent successfully.');
-                } else {
-                    $smsError = 'SimpleTexting Error: ' . $response->body();
-                    logger()->error('SimpleTexting error sending pickup reminder for order #' . $order->id . ': ' . $response->body());
-                    return redirect()->route('admin.orders.show', $order)->with('error', 'Failed to send reminder: ' . $smsError);
-                }
-            } else {
-                $smsError = 'SimpleTexting SMS not sent. Missing API key in .env or customer phone.';
-                logger()->warning('SimpleTexting SMS not sent for order #' . $order->id . '. Missing API key or customer phone for reminder.');
-                return redirect()->route('admin.orders.show', $order)->with('error', $smsError);
-            }
+            // Queue pickup reminder SMS
+            SendPickupReminderSMS::dispatch($order);
+            logger()->info("Pickup reminder SMS queued for order #{$order->id}.");
+            
+            return redirect()->route('admin.orders.show', $order)->with('success', 'Pickup reminder SMS has been queued and will be sent shortly.');
+            
         } catch (Exception $e) {
-            logger()->error('General Exception sending pickup reminder for order #' . $order->id . ': ' . $e->getMessage());
-            return redirect()->route('admin.orders.show', $order)->with('error', 'An unexpected error occurred while sending the reminder.');
+            logger()->error('Error queuing pickup reminder for order #' . $order->id . ': ' . $e->getMessage());
+            return redirect()->route('admin.orders.show', $order)->with('error', 'Failed to queue pickup reminder. Please try again.');
         }
     }
 }

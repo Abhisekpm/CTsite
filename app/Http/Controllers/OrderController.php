@@ -20,6 +20,8 @@ use Illuminate\Validation\ValidationException; // Needed to throw validation err
 use Illuminate\Support\Facades\Mail; // Import Mail facade
 use App\Mail\CustomerOrderConfirmationMail; // Import custom Mailable
 use App\Mail\AdminOrderNotificationMail; // Import admin Mailable
+use App\Jobs\SendCustomerOrderSMS; // Import SMS job
+use App\Jobs\SendAdminOrderSMS; // Import admin SMS job
 
 class OrderController extends Controller
 {
@@ -155,84 +157,25 @@ class OrderController extends Controller
             return redirect()->route('custom-order.create')->with('error', 'Sorry, there was an issue submitting your order. Please try again or contact us directly.')->withInput();
         }
 
-        // --- Send Notifications AFTER successful database commit ---
+        // --- Queue Notifications AFTER successful database commit ---
         if ($order) {
-            $adminPhone = env('ADMIN_PHONE');
+            // Queue customer email notification
+            Mail::to($order->email)->queue(new CustomerOrderConfirmationMail($order));
+            logger()->info("Customer email queued for order #{$order->id}.");
+
+            // Queue customer SMS notification (job will check consent)
+            SendCustomerOrderSMS::dispatch($order);
+            logger()->info("Customer SMS queued for order #{$order->id}.");
+
+            // Queue admin SMS notification
+            SendAdminOrderSMS::dispatch($order);
+            logger()->info("Admin SMS queued for order #{$order->id}.");
+
+            // Queue admin email notification
             $adminEmail = env('ADMIN_EMAIL');
-            $simpleTextingApiKey = env('SIMPLETEXTING_API_KEY');
-
-            // --- Customer Email Notification (Independent) ---
-            try {
-                Mail::to($order->email)->send(new CustomerOrderConfirmationMail($order));
-                logger()->info("Customer email sent for order #{$order->id}.");
-            } catch (\Exception $e) {
-                logger()->error('Error sending customer email for order #' . $order->id . ': ' . $e->getMessage());
-            }
-
-            // --- Customer SMS Notification (Independent) ---
-            logger()->info("SMS consent check for order #{$order->id}: sms_consent = " . ($order->sms_consent ? 'true' : 'false') . " (value: " . $order->sms_consent . ")");
-            
-            if ($order->sms_consent) {
-                try {
-                    $customerPhone = $order->phone;
-
-                    if ($simpleTextingApiKey && $customerPhone) {
-                        $customerMessage = "Thanks, {$order->customer_name}! Your custom cake request (#{$order->id}) is received and pending review. We'll text you with pricing soon.";
-                        
-                        $response = Http::withHeaders([
-                            'Authorization' => 'Bearer ' . $simpleTextingApiKey,
-                            'Content-Type' => 'application/json'
-                        ])->post('https://api-app2.simpletexting.com/v2/api/messages', [
-                            'contactPhone' => $customerPhone,
-                            'mode' => 'AUTO',
-                            'text' => $customerMessage
-                        ]);
-
-                        if ($response->successful()) {
-                            logger()->info("Initial order SMS sent for order #{$order->id}.");
-                        } else {
-                            logger()->error('SimpleTexting error sending initial SMS for order #' . $order->id . ': ' . $response->body());
-                        }
-                    } else {
-                        logger()->warning('SimpleTexting SMS not sent for order #' . $order->id . '. Missing API key in .env');
-                    }
-                } catch (\Exception $e) {
-                    logger()->error('Error sending customer SMS for order #' . $order->id . ': ' . $e->getMessage());
-                }
-            }
-
-            // --- Admin SMS Notification (Independent) ---
-            if ($adminPhone && $simpleTextingApiKey) {
-                try {
-                    $adminMessage = "New custom cake request (#{$order->id}) from {$order->customer_name} for pickup on {$order->pickup_date}. Needs pricing.";
-                    
-                    $adminResponse = Http::withHeaders([
-                        'Authorization' => 'Bearer ' . $simpleTextingApiKey,
-                        'Content-Type' => 'application/json'
-                    ])->post('https://api-app2.simpletexting.com/v2/api/messages', [
-                        'contactPhone' => $adminPhone,
-                        'mode' => 'AUTO',
-                        'text' => $adminMessage
-                    ]);
-
-                    if ($adminResponse->successful()) {
-                        logger()->info("Initial admin SMS sent for order #{$order->id}.");
-                    } else {
-                        logger()->error('SimpleTexting error sending initial admin SMS for order #' . $order->id . ': ' . $adminResponse->body());
-                    }
-                } catch (\Exception $e) {
-                    logger()->error('Error sending admin SMS for order #' . $order->id . ': ' . $e->getMessage());
-                }
-            }
-
-            // --- Admin Email Notification (Independent) ---
             if ($adminEmail) {
-                try {
-                    Mail::to($adminEmail)->send(new AdminOrderNotificationMail($order));
-                    logger()->info("Admin email sent for order #{$order->id}.");
-                } catch (\Exception $e) {
-                    logger()->error('Error sending admin email for order #' . $order->id . ': ' . $e->getMessage());
-                }
+                Mail::to($adminEmail)->queue(new AdminOrderNotificationMail($order));
+                logger()->info("Admin email queued for order #{$order->id}.");
             }
         }
 

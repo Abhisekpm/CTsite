@@ -815,6 +815,49 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     // --- End Image Preview Logic ---
 
+    // --- Form Submission Prevention Logic ---
+    const submitButton = document.getElementById('submitOrderBtn');
+    let isSubmitting = false;
+
+    if (submitButton && form) {
+        form.addEventListener('submit', function(event) {
+            // Prevent multiple submissions
+            if (isSubmitting) {
+                event.preventDefault();
+                return false;
+            }
+
+            // Validate final tab before allowing submission
+            const currentTabIndex = getCurrentTabIndex();
+            if (!validateTab(currentTabIndex)) {
+                event.preventDefault();
+                return false;
+            }
+
+            // Mark as submitting and update UI
+            isSubmitting = true;
+            submitButton.disabled = true;
+            
+            // Store original button text and show loading state
+            const originalText = submitButton.innerHTML;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
+            
+            // Add visual feedback
+            submitButton.classList.add('btn-loading');
+            
+            // Re-enable after timeout as fallback (in case of network issues)
+            setTimeout(() => {
+                if (isSubmitting) {
+                    isSubmitting = false;
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalText;
+                    submitButton.classList.remove('btn-loading');
+                }
+            }, 30000); // 30 second timeout
+        });
+    }
+    // --- End Form Submission Prevention Logic ---
+
 }); // End of the main DOMContentLoaded listener
 </script>
 @endpush
@@ -830,6 +873,22 @@ document.addEventListener('DOMContentLoaded', function () {
     /* Add transition for smoother effect (optional) */
     .clickable-flavor {
         transition: background-color 0.2s ease-in-out, border-left 0.2s ease-in-out;
+    }
+    
+    /* Form submission loading states */
+    .btn-loading {
+        opacity: 0.8;
+        cursor: not-allowed;
+    }
+    
+    .btn-loading:hover {
+        opacity: 0.8;
+    }
+    
+    /* Disable pointer events on the form during submission */
+    .form-submitting {
+        pointer-events: none;
+        opacity: 0.9;
     }
 </style>
 @endpush
