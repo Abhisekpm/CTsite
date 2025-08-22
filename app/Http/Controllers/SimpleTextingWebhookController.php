@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use libphonenumber\PhoneNumberUtil;
 use libphonenumber\PhoneNumberFormat;
+use App\Jobs\SendCustomerOrderConfirmationSMS;
 
 class SimpleTextingWebhookController extends Controller
 {
@@ -75,6 +76,10 @@ class SimpleTextingWebhookController extends Controller
                 $order->status = 'confirmed';
                 $order->save();
                 Log::info("SimpleTexting Webhook: Order #{$order->id} status updated to 'confirmed'.");
+
+                // Send confirmation SMS to customer
+                SendCustomerOrderConfirmationSMS::dispatch($order);
+                Log::info("SimpleTexting Webhook: Order confirmation SMS queued for order #{$order->id}.");
 
             } catch (\Exception $e) {
                 Log::error("SimpleTexting Webhook: Error updating status for order #{$order->id}: " . $e->getMessage());
