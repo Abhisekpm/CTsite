@@ -20,7 +20,6 @@ To confirm your order, please pay a **$20 deposit** using one of the following m
 
 After making your deposit payment, please reply to confirm your order by:
 - **Text/SMS:** Reply "YES" to our text message
-- **Email:** Reply to this email with "CONFIRMED"
 - **Phone:** Call us at (267) 541-8620
 
 ## Order Details

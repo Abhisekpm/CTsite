@@ -18,11 +18,19 @@ class SimpleTextingWebhookController extends Controller
     {
         Log::info('SimpleTexting Webhook Received:', $request->all());
 
-        $fromNumber = $request->input('contactPhone');
-        $messageBody = trim(strtoupper($request->input('text')));
+        // Handle SimpleTexting's actual webhook structure
+        $values = $request->input('values', []);
+        $fromNumber = $values['contactPhone'] ?? $request->input('contactPhone');
+        $messageBody = trim(strtoupper($values['text'] ?? $request->input('text', '')));
+
+        Log::info("SimpleTexting Webhook: Extracted data - fromNumber: {$fromNumber}, messageBody: {$messageBody}");
 
         if (!$fromNumber || !$messageBody) {
-            Log::warning('SimpleTexting Webhook: Missing contactPhone or text.');
+            Log::warning('SimpleTexting Webhook: Missing contactPhone or text.', [
+                'values' => $values,
+                'fromNumber' => $fromNumber,
+                'messageBody' => $messageBody
+            ]);
             return response()->json(['status' => 'error', 'message' => 'Missing contactPhone or text'], 400);
         }
 
