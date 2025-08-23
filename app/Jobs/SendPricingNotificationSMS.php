@@ -65,7 +65,7 @@ class SendPricingNotificationSMS implements ShouldQueue
         try {
             $formattedPrice = number_format($this->order->price, 2);
             
-            $messageBody = "Your custom cake order #{$this->order->id} is priced at $${formattedPrice}. Please pay a deposit of $20 via Zelle (5179806354) or Venmo (@Nupur-Kundalia) and reply YES here to confirm. If there are questions contact the bakery at (267)-541-8620";
+            $messageBody = "Your cake order #{$this->order->id} is priced at $${formattedPrice}. Please pay a deposit of $20 via Zelle (5179806354) or Venmo (@Nupur-Kundalia) and reply YES here to confirm. If there are questions contact the bakery at (267)-541-8620";
 
             $response = Http::timeout(20)->withHeaders([
                 'Authorization' => 'Bearer ' . $simpleTextingApiKey,

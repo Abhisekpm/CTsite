@@ -69,7 +69,7 @@ class SendCustomerOrderSMS implements ShouldQueue
         }
 
         try {
-            $customerMessage = "Thanks, {$this->order->customer_name}! Your custom cake request (#{$this->order->id}) is received and pending review. We'll text you with pricing soon.";
+            $customerMessage = "Thanks, {$this->order->customer_name}! Your cake request (#{$this->order->id}) is received and pending review. We'll text you with pricing soon.";
             
             $response = Http::timeout(20)->withHeaders([
                 'Authorization' => 'Bearer ' . $simpleTextingApiKey,

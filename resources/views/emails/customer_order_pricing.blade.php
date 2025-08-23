@@ -1,9 +1,9 @@
 @component('mail::message')
-# Your Custom Cake Order is Priced!
+# Your Cake Order is Priced!
 
 Hi {{ $order->customer_name }},
 
-Great news! We've completed the pricing for your custom cake order and it's ready for confirmation.
+We've completed the pricing for your cake order and it's ready for confirmation.
 
 **Order ID:** #{{ $order->id }}<br>
 **Total Price:** ${{ number_format($order->price, 2) }}<br>
@@ -24,13 +24,11 @@ After making your deposit payment, please reply to confirm your order by:
 
 ## Order Details
 
-We'll have your custom cake ready for pickup exactly as requested. If you have any questions about your order or need to make any changes, please contact us immediately.
-
-**Important:** Your order will be held for 24 hours pending deposit payment. After this time, we may need to release your pickup slot.
+We'll have your cake ready for pickup as requested. If you have any questions about your order or need to make any changes, please contact us immediately.
 
 Thanks,<br>
 The {{ config('app.name') }} Team
 
 ---
-*Questions? Call us at (267) 541-8620 or reply to this email.*
+*Questions? Call us at (267) 541-8620*
 @endcomponent

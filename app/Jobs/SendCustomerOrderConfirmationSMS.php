@@ -66,7 +66,7 @@ class SendCustomerOrderConfirmationSMS implements ShouldQueue
             $pickupDate = \Carbon\Carbon::parse($this->order->pickup_date)->format('l, F jS');
             $pickupTime = \Carbon\Carbon::parse($this->order->pickup_time)->format('h:i A');
             
-            $messageBody = "Great! Your cake order #{$this->order->id} is CONFIRMED for pickup on {$pickupDate} at {$pickupTime}. We'll start working on your custom cake. Contact us at (267)-541-8620 if you have any questions.";
+            $messageBody = "Great! Your cake order #{$this->order->id} is CONFIRMED for pickup on {$pickupDate} at {$pickupTime}. Contact us at (267)-541-8620 if you have any questions.";
 
             $response = Http::timeout(20)->withHeaders([
                 'Authorization' => 'Bearer ' . $simpleTextingApiKey,

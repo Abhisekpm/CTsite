@@ -53,7 +53,7 @@ class AdminOrderNotificationMail extends Mailable implements ShouldQueue
     public function envelope()
     {
         return new Envelope(
-            subject: 'New Custom Cake Request',
+            subject: 'New Cake Request',
         );
     }
 

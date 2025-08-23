@@ -63,7 +63,7 @@ class SendAdminOrderSMS implements ShouldQueue
         }
 
         try {
-            $adminMessage = "New custom cake request (#{$this->order->id}) from {$this->order->customer_name} for pickup on {$this->order->pickup_date}. Needs pricing.";
+            $adminMessage = "New cake request (#{$this->order->id}) from {$this->order->customer_name} for pickup on {$this->order->pickup_date}. Needs pricing.";
             
             $response = Http::timeout(20)->withHeaders([
                 'Authorization' => 'Bearer ' . $simpleTextingApiKey,

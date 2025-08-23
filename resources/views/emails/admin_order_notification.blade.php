@@ -1,7 +1,7 @@
 @component('mail::message')
-# New Custom Cake Request Received
+# New Cake Request Received
 
-A new custom cake request has been submitted and requires pricing.
+A new cake request has been submitted and requires pricing.
 
 **Order ID:** #{{ $order->id }}
 **Customer Name:** {{ $order->customer_name }}

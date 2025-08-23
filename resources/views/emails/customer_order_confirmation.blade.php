@@ -1,9 +1,9 @@
 @component('mail::message')
-# Your Custom Cake Request is Received!
+# Your Cake Request is Received!
 
 Hi {{ $order->customer_name }},
 
-Thank you for placing a custom cake order with us. This email confirms that we have received your request and it is now pending review.
+Thank you for placing a cake order with us. This email confirms that we have received your request and it is now pending review.
 
 **Order ID:** #{{ $order->id }}<br>
 **Pickup Date:** {{ \Carbon\Carbon::parse($order->pickup_date)->format('F j, Y') }} at {{ \Carbon\Carbon::parse($order->pickup_time)->format('g:i A') }}

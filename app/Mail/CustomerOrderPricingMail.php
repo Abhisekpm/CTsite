@@ -53,7 +53,7 @@ class CustomerOrderPricingMail extends Mailable implements ShouldQueue
     public function envelope()
     {
         return new Envelope(
-            subject: 'Your Custom Cake Order is Priced - Payment Required',
+            subject: 'Your Cake Order is Priced - Payment Required',
         );
     }
 

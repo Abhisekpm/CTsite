@@ -53,7 +53,7 @@ class CustomerOrderConfirmationMail extends Mailable implements ShouldQueue
     public function envelope()
     {
         return new Envelope(
-            subject: 'Your Custom Cake Request Confirmation',
+            subject: 'Your Cake Request Confirmation',
         );
     }
 
