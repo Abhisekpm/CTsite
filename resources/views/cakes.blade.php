@@ -568,38 +568,36 @@
                                                 <!--</div>-->
                                                 <div class="shadow br-0-0-10-10" style="margin-top:20px">
                                                     <div class="bg-primary br-10-10-0-0 p-10-0">
-                                                        <h3 style="margin-bottom:0">Custom Ordering Instructions</h3>
+                                                        <h3 style="margin-bottom:0">Order a Custom Cake</h3>
                                                     </div>
                                                     <div class="p-20">
                                                         <div class="d-flex align-items-center pb-20">
-                                                            <div
-                                                                class="w-100 d-flex flex-column text-center justify-content-center border-bottom-thick">
-                                                                <h6 class="d-flex text-center pb-2 m-b-20">
-                                                                    <span>Send your requirements to <a
-                                                                            href="tel:+12675418620">267-541-8620</a> via
-                                                                        text, <a href="https://api.whatsapp.com/send/?phone=%2B12675418620&text&type=phone_number&app_absent=0" target="_blank">Whatsapp</a> or <a href="https://www.facebook.com/439439996089579" target="_blank">Facebook Messenger</a>.</span>
-                                                                </h6>
-                                                                <h6 class="d-flex text-center pb-2 m-b-20">
-                                                                    <span>Select the size, flavor and custom decorations for
-                                                                        your cake using the options below.</span>
-                                                                </h6>
-                                                                <h6 class="d-flex text-center pb-2 m-b-20">
-                                                                    <span>Describe the requirements for custom decorations
-                                                                        using images or screenshots.</span>
-                                                                </h6>
-                                                                <h6 class="d-flex text-center pb-2 m-b-20">
-                                                                    <span>We will quote the additional cost for the custom
-                                                                        decorations.</span>
-                                                                </h6>
-                                                                <h6 class="text-center pb-2 m-b-20">
-                                                                    <span>Let us know if we should know about any
-                                                                        allergies.</span>
-                                                                </h6>
-                                                                <h6 class="d-flex text-center pb-2 m-b-20">
-                                                                    <span>Please keep in mind that each cake and custom
-                                                                        decoration is hand crafted and made from
-                                                                        scratch.</span>
-                                                                </h6>
+                                                            <div class="w-100 d-flex flex-column text-start">
+                                                                
+                                                                <div class="mb-3">
+                                                                    <strong>1. Submit Your Order Form</strong><br>
+                                                                    Tell us about your cake by completing our <a href="{{ route('custom-order.create') }}" class="text-primary">Custom Cake Order Form</a> with your preferred size, flavor, and custom decorations.
+                                                                </div>
+                                                                
+                                                                <div class="mb-3">
+                                                                    <strong>2. Review Your Quote</strong><br>
+                                                                    Based on your submission, we will email and text you a custom price for your order.
+                                                                </div>
+                                                                
+                                                                <div class="mb-4">
+                                                                    <strong>3. Confirm with a Deposit</strong><br>
+                                                                    A $20 deposit is required to confirm your order. This deposit is non-refundable if the order is cancelled within 5 days of the event.
+                                                                </div>
+                                                                
+                                                                <div>
+                                                                    <strong>Please Note:</strong>
+                                                                    <ul class="mt-2">
+                                                                        <li><strong>Handcrafted:</strong>Every cake we make is a unique work of art, handcrafted with care and made from scratch just for you.</li>
+                                                                        <li><strong>Inspiration Photos:</strong> We welcome your inspiration pictures! Please understand that while we use them as a guide, our decorators create a handcrafted version and cannot guarantee an exact replica.</li>
+                                                                        <li><strong>Standard Orders:</strong> A minimum of 3 days' notice is required for all custom cakes.</li>
+                                                                        <li><strong>Rush Orders:</strong> A $15 rush fee will be applied to all next-day orders.</li>
+                                                                    </ul>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>

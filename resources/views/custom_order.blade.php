@@ -25,6 +25,13 @@
         <div class="container">
             <div class="row g-5 align-items-center">
                 <div class="col-lg-8 offset-lg-2 wow fadeInUp" data-wow-delay="0.2s">
+                    {{-- How It Works Button --}}
+                    <div class="text-start mb-4">
+                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#howItWorksModal">
+                            How It Works
+                        </button>
+                    </div>
+                    
                     <h5 class="section-title ff-secondary text-start text-primary fw-normal">Place Your Order</h5>
                     <h1 class="mb-4">Request a Custom Cake</h1>
 
@@ -507,6 +514,49 @@
         </div>
     </div>
     {{-- Order Form Section End --}}
+
+    {{-- How It Works Modal --}}
+    <div class="modal fade" id="howItWorksModal" tabindex="-1" aria-labelledby="howItWorksModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="howItWorksModalLabel">Order a Custom Cake</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <strong>1. Submit Your Order Form</strong><br>
+                        Tell us about your cake by completing our Custom Cake Order Form with your preferred size, flavor, and custom decorations.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>2. Review Your Quote</strong><br>
+                        Based on your submission, we will email and text you a custom price for your order.
+                    </div>
+                    
+                    <div class="mb-4">
+                        <strong>3. Confirm with a Deposit</strong><br>
+                        A $20 deposit is required to confirm your order. This deposit is non-refundable if the order is cancelled within 5 days of the event.
+                    </div>
+                    
+                    <div>
+                        <strong>Please Note:</strong>
+                        <ul class="mt-2">
+                            <li><strong>Handcrafted:</strong> Every cake we make is a unique work of art, handcrafted with care and made from scratch just for you.</li>
+                            <li><strong>Inspiration Photos:</strong> We welcome your inspiration pictures! Please understand that while we use them as a guide, our decorators create a handcrafted version and cannot guarantee an exact replica.</li>
+                            <li><strong>Standard Orders:</strong> A minimum of 3 days' notice is required for all custom cakes.</li>
+                            <li><strong>Rush Orders:</strong> A $15 rush fee will be applied to all next-day orders.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Got It, Let's Order!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{-- End How It Works Modal --}}
+
 @endsection
 
 @push('scripts')
