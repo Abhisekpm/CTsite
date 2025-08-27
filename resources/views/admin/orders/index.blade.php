@@ -1,6 +1,9 @@
 @extends('admin.orders.layout')
 
 @section('title', 'Cake Order List')
+@section('breadcrumb')
+<li class="breadcrumb-item active" aria-current="page">Orders</li>
+@endsection
 
 @section('content')
     <h2 class="mb-4">List of Cake Orders</h2>

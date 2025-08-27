@@ -81,6 +81,18 @@
             @endauth
         </header>
 
+        {{-- Breadcrumb Navigation --}}
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('admin.home') }}">Home</a></li>
+                @hasSection('breadcrumb')
+                    @yield('breadcrumb')
+                @else
+                    <li class="breadcrumb-item active" aria-current="page">Orders</li>
+                @endif
+            </ol>
+        </nav>
+
         <main>
             {{-- Session Messages --}}
             @if (session('success'))

@@ -65,7 +65,8 @@ class CrmOccasion extends Model
     /**
      * Calculate the next anticipated order date based on last order date
      * This takes the month and day from last_order_date_latest and finds the next occurrence
-     * within the next 12 months from today
+     * within the next 12 months from today. If the customer has already ordered recently
+     * (last order is in the future), we wait 12 months from that date.
      */
     public function calculateNextAnticipatedOrderDate()
     {
@@ -75,6 +76,12 @@ class CrmOccasion extends Model
 
         $lastOrderDate = Carbon::parse($this->last_order_date_latest);
         $today = now();
+        
+        // If the last order date is in the future (customer already ordered for this year's occasion),
+        // set next anticipated order to 12 months from that future date
+        if ($lastOrderDate->gt($today)) {
+            return $lastOrderDate->copy()->addYear();
+        }
         
         // Get month and day from the last order
         $targetMonth = $lastOrderDate->month;
@@ -121,7 +128,30 @@ class CrmOccasion extends Model
     }
 
     /**
+     * Update occasion when a new order is placed by the customer
+     * This should be called whenever a customer places a new order
+     */
+    public function updateWithNewOrder($orderDate = null)
+    {
+        $orderDate = $orderDate ? Carbon::parse($orderDate) : now();
+        
+        // Update the last order date if this is more recent
+        if (!$this->last_order_date_latest || 
+            Carbon::parse($this->last_order_date_latest)->lt($orderDate)) {
+            $this->last_order_date_latest = $orderDate;
+            $this->history_count = $this->history_count + 1;
+        }
+        
+        // Recalculate all dates based on the new order information
+        $this->next_anticipated_order_date = null; // Force recalculation
+        $this->updateCalculatedDates();
+        
+        return $this;
+    }
+
+    /**
      * Static method to calculate next anticipated order date from a given date
+     * Includes logic to handle recent orders (future dates)
      */
     public static function calculateNextAnticipatedOrderDateStatic($lastOrderDate)
     {
@@ -131,6 +161,12 @@ class CrmOccasion extends Model
 
         $lastOrderDate = Carbon::parse($lastOrderDate);
         $today = now();
+        
+        // If the last order date is in the future (customer already ordered for this year's occasion),
+        // set next anticipated order to 12 months from that future date
+        if ($lastOrderDate->gt($today)) {
+            return $lastOrderDate->copy()->addYear();
+        }
         
         // Get month and day from the last order
         $targetMonth = $lastOrderDate->month;

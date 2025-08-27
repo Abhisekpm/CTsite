@@ -1,6 +1,10 @@
 @extends('admin.orders.layout')
 
 @section('title', "Order #{$order->id} Details")
+@section('breadcrumb')
+<li class="breadcrumb-item"><a href="{{ route('admin.orders.index') }}">Orders</a></li>
+<li class="breadcrumb-item active" aria-current="page">Order #{{ $order->id }}</li>
+@endsection
 
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-4">

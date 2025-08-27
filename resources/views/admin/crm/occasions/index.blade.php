@@ -78,12 +78,11 @@
                         </div>
                         <div class="col-md-2">
                             <div class="form-group">
-                                <label>Confidence</label>
-                                <select name="confidence" class="form-control">
-                                    <option value="">All Confidence</option>
-                                    <option value="high" {{ request('confidence') == 'high' ? 'selected' : '' }}>High</option>
-                                    <option value="medium" {{ request('confidence') == 'medium' ? 'selected' : '' }}>Medium</option>
-                                    <option value="low" {{ request('confidence') == 'low' ? 'selected' : '' }}>Low</option>
+                                <label>Show</label>
+                                <select name="order_filter" class="form-control">
+                                    <option value="">All Occasions</option>
+                                    <option value="recent_orders" {{ request('order_filter') == 'recent_orders' ? 'selected' : '' }}>Recent Orders</option>
+                                    <option value="no_orders" {{ request('order_filter') == 'no_orders' ? 'selected' : '' }}>No Previous Orders</option>
                                 </select>
                             </div>
                         </div>
@@ -93,6 +92,7 @@
                                 <select name="sort" class="form-control">
                                     <option value="reminder_date" {{ request('sort') == 'reminder_date' ? 'selected' : '' }}>Reminder Date</option>
                                     <option value="anchor_week" {{ request('sort') == 'anchor_week' ? 'selected' : '' }}>Anchor Week</option>
+                                    <option value="last_order_date" {{ request('sort') == 'last_order_date' ? 'selected' : '' }}>Last Order Date</option>
                                     <option value="customer_name" {{ request('sort') == 'customer_name' ? 'selected' : '' }}>Customer Name</option>
                                     <option value="occasion_type" {{ request('sort') == 'occasion_type' ? 'selected' : '' }}>Occasion Type</option>
                                 </select>
@@ -122,8 +122,8 @@
             <div class="col-md-3">
                 <div class="card bg-light-success">
                     <div class="card-body text-center">
-                        <h4>{{ $occasions->where('anchor_confidence', 'high')->count() }}</h4>
-                        <small>High Confidence (Current Page)</small>
+                        <h4>{{ $occasions->whereNotNull('last_order_date_latest')->count() }}</h4>
+                        <small>With Order History (Current Page)</small>
                     </div>
                 </div>
             </div>
@@ -157,17 +157,17 @@
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-striped table-hover">
+                            <table class="table table-striped table-hover table-sm">
                                 <thead>
                                     <tr>
-                                        <th>Customer</th>
-                                        <th>Occasion</th>
-                                        <th>Anchor Week</th>
-                                        <th>Next Anticipated Order</th>
-                                        <th>Reminder</th>
-                                        <th>Confidence</th>
-                                        <th>History</th>
-                                        <th>Actions</th>
+                                        <th style="min-width: 150px;">Customer</th>
+                                        <th style="width: 90px;">Occasion</th>
+                                        <th style="width: 110px;">Anchor Week</th>
+                                        <th style="width: 120px;">Next Anticipated</th>
+                                        <th style="width: 100px;">Reminder</th>
+                                        <th style="width: 80px;">Last Ordered</th>
+                                        <th style="width: 70px;">History</th>
+                                        <th style="width: 100px;">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -175,71 +175,70 @@
                                     <tr class="{{ $occasion->reminder_date && $occasion->reminder_date->isPast() && !$occasion->reminder_sent ? 'table-warning' : '' }}">
                                         <td>
                                             <div>
-                                                <strong>{{ $occasion->customer->buyer_name }}</strong>
+                                                <strong style="font-size: 0.9em;">{{ Str::limit($occasion->customer->buyer_name, 20) }}</strong>
                                                 @if($occasion->customer->orders_count >= 5)
                                                     <i class="fas fa-crown text-warning ms-1" title="High Value Customer"></i>
                                                 @endif
                                             </div>
-                                            <small class="text-muted">{{ $occasion->customer->primary_email }}</small>
+                                            <small class="text-muted" style="font-size: 0.75em;" title="{{ $occasion->customer->primary_email }}">{{ Str::limit($occasion->customer->primary_email, 20) }}</small>
                                         </td>
-                                        <td>
+                                        <td class="text-center">
                                             <div>
-                                                <span class="badge badge-primary">{{ ucfirst($occasion->occasion_type) }}</span>
+                                                <span class="badge badge-primary" style="font-size: 0.7em;">{{ ucfirst($occasion->occasion_type) }}</span>
                                             </div>
                                             @if($occasion->honoree_name)
-                                                <small class="text-muted">{{ $occasion->honoree_name }}</small>
+                                                <small class="text-muted" style="font-size: 0.7em;" title="{{ $occasion->honoree_name }}">{{ Str::limit($occasion->honoree_name, 12) }}</small>
                                             @endif
                                         </td>
-                                        <td>
-                                            <div>{{ $occasion->anchor_week_start_date->format('M d') }} - {{ $occasion->anchor_week_start_date->endOfWeek()->format('M d') }}</div>
-                                            <small class="text-muted">{{ $occasion->anchor_week_start_date->format('Y') }}</small>
+                                        <td class="text-center">
+                                            <div style="font-size: 0.85em;">{{ $occasion->anchor_week_start_date->format('M d') }} - {{ $occasion->anchor_week_start_date->endOfWeek()->format('M d') }}</div>
+                                            <small class="text-muted" style="font-size: 0.7em;">{{ $occasion->anchor_week_start_date->format('Y') }}</small>
                                         </td>
-                                        <td>
+                                        <td class="text-center">
                                             @if($occasion->next_anticipated_order_date)
-                                                <div>{{ $occasion->next_anticipated_order_date->format('M d, Y') }}</div>
-                                                <small class="text-muted">{{ $occasion->next_anticipated_order_date->diffForHumans() }}</small>
+                                                <div style="font-size: 0.85em;">{{ $occasion->next_anticipated_order_date->format('M d, Y') }}</div>
+                                                <small class="text-muted" style="font-size: 0.7em;">{{ $occasion->next_anticipated_order_date->diffForHumans() }}</small>
                                             @else
-                                                <span class="text-muted">Not calculated</span>
+                                                <span class="text-muted" style="font-size: 0.85em;">Not calculated</span>
                                             @endif
                                         </td>
-                                        <td>
+                                        <td class="text-center">
                                             @if($occasion->reminder_date)
-                                                <div class="{{ $occasion->reminder_date->isPast() && !$occasion->reminder_sent ? 'text-danger' : '' }}">
+                                                <div class="{{ $occasion->reminder_date->isPast() && !$occasion->reminder_sent ? 'text-danger' : '' }}" style="font-size: 0.85em;">
                                                     {{ $occasion->reminder_date->format('M d, Y') }}
                                                 </div>
-                                                <small class="text-muted">{{ $occasion->reminder_date->diffForHumans() }}</small>
+                                                <small class="text-muted" style="font-size: 0.7em;">{{ $occasion->reminder_date->diffForHumans() }}</small>
                                                 @if($occasion->reminder_sent)
-                                                    <br><span class="badge badge-success badge-sm">Sent</span>
+                                                    <br><span class="badge badge-success badge-sm" style="font-size: 0.6em;">Sent</span>
                                                 @elseif($occasion->reminder_date->isPast())
-                                                    <br><span class="badge badge-danger badge-sm">Overdue</span>
+                                                    <br><span class="badge badge-danger badge-sm" style="font-size: 0.6em;">Overdue</span>
                                                 @endif
                                             @else
-                                                <span class="text-muted">Not set</span>
+                                                <span class="text-muted" style="font-size: 0.85em;">Not set</span>
                                             @endif
                                         </td>
-                                        <td>
-                                            @if($occasion->anchor_confidence === 'high')
-                                                <span class="badge badge-success">High</span>
-                                            @elseif($occasion->anchor_confidence === 'medium')
-                                                <span class="badge badge-warning">Medium</span>
+                                        <td class="text-center">
+                                            @if($occasion->last_order_date_latest)
+                                                <div style="font-size: 0.8em;">{{ \Carbon\Carbon::parse($occasion->last_order_date_latest)->format('M d, Y') }}</div>
+                                                <small class="text-muted" style="font-size: 0.6em;">{{ \Carbon\Carbon::parse($occasion->last_order_date_latest)->diffForHumans() }}</small>
                                             @else
-                                                <span class="badge badge-secondary">Low</span>
+                                                <span class="text-muted" style="font-size: 0.7em;">No orders</span>
                                             @endif
                                         </td>
-                                        <td>
-                                            <span class="badge badge-info badge-pill">{{ $occasion->history_count }}</span> orders
+                                        <td class="text-center">
+                                            <span class="badge badge-info badge-pill" style="font-size: 0.7em;">{{ $occasion->history_count }}</span>
                                             @if($occasion->history_years)
-                                                <br><small class="text-muted">{{ $occasion->history_years }}</small>
+                                                <br><small class="text-muted" style="font-size: 0.6em;">{{ Str::limit($occasion->history_years, 8) }}</small>
                                             @endif
                                         </td>
-                                        <td>
+                                        <td class="text-center">
                                             <a href="{{ route('admin.crm.occasions.show', $occasion) }}" 
-                                               class="btn btn-sm btn-outline-info">
-                                                <i class="fas fa-eye"></i> View
+                                               class="btn btn-xs btn-outline-info me-1" title="View Occasion">
+                                                <i class="fas fa-eye"></i>
                                             </a>
                                             <a href="{{ route('admin.crm.customers.show', $occasion->customer) }}" 
-                                               class="btn btn-sm btn-outline-secondary">
-                                                <i class="fas fa-user"></i> Customer
+                                               class="btn btn-xs btn-outline-secondary" title="View Customer">
+                                                <i class="fas fa-user"></i>
                                             </a>
                                         </td>
                                     </tr>

@@ -147,6 +147,32 @@ class CrmOccasion extends Model
         return $this->anchor_week_start_date->subDays(8);
     }
     
+    // Calculate next anticipated order date with recent order handling
+    public function calculateNextAnticipatedOrderDate()
+    {
+        if (!$this->last_order_date_latest) return null;
+        
+        $lastOrderDate = Carbon::parse($this->last_order_date_latest);
+        $today = now();
+        
+        // NEW LOGIC: If customer already ordered for this year (future date),
+        // push next reminder to 12 months from that future date
+        if ($lastOrderDate->gt($today)) {
+            return $lastOrderDate->copy()->addYear();
+        }
+        
+        // Existing logic for past orders...
+        $targetMonth = $lastOrderDate->month;
+        $targetDay = $lastOrderDate->day;
+        $nextDate = Carbon::create($today->year, $targetMonth, $targetDay);
+        
+        if ($nextDate->lte($today)) {
+            $nextDate = Carbon::create($today->year + 1, $targetMonth, $targetDay);
+        }
+        
+        return $nextDate;
+    }
+    
     // Get all occasions for a specific week
     public static function getWeeklyOccasions($anchorWeekStart)
     {
@@ -621,3 +647,8 @@ Reminder Date: February 23, 2025 (Sunday, 8 days before March 3)
 ---
 
 *This CRM system will transform customer relationship management for Chocolate Therapy by providing data-driven insights, automated reminders, and personalized customer experiences.*
+
+Flexible Seeding: The seeders work correctly whether you're:
+    - Fresh seeding in production (php artisan crm:seed)
+    - Importing new CSV data (php artisan crm:import)
+    - Updating existing occasions (php artisan crm:update-dates)

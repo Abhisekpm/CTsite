@@ -124,6 +124,18 @@ class CrmController extends Controller
             $query->where('occasion_type', $request->occasion_type);
         }
 
+        // Filter by order history
+        if ($request->filled('order_filter')) {
+            switch ($request->order_filter) {
+                case 'recent_orders':
+                    $query->whereNotNull('last_order_date_latest');
+                    break;
+                case 'no_orders':
+                    $query->whereNull('last_order_date_latest');
+                    break;
+            }
+        }
+
         // Filter by time range - use next_anticipated_order_date for future dates
         $timeframe = $request->get('timeframe', 'upcoming');
         switch ($timeframe) {
@@ -155,9 +167,33 @@ class CrmController extends Controller
             return $this->weeklyOccasionsView($query);
         }
 
+        // Apply sorting
+        $sort = $request->get('sort', 'reminder_date');
+        switch ($sort) {
+            case 'reminder_date':
+                $query->orderBy('reminder_date', 'asc');
+                break;
+            case 'anchor_week':
+                $query->orderBy('next_anchor_week_start', 'asc');
+                break;
+            case 'last_order_date':
+                $query->orderBy('last_order_date_latest', 'desc');
+                break;
+            case 'customer_name':
+                $query->join('crm_customers', 'crm_occasions.customer_id', '=', 'crm_customers.customer_id')
+                     ->orderBy('crm_customers.buyer_name', 'asc')
+                     ->select('crm_occasions.*');
+                break;
+            case 'occasion_type':
+                $query->orderBy('occasion_type', 'asc');
+                break;
+            default:
+                $query->orderBy('next_anchor_week_start', 'asc');
+                break;
+        }
+
         // Standard list view
-        $occasions = $query->orderBy('next_anticipated_order_date', 'asc')
-            ->paginate(25)
+        $occasions = $query->paginate(25)
             ->withQueryString();
 
         return view('admin.crm.occasions.index', compact('occasions'));

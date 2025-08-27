@@ -125,16 +125,16 @@
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-striped table-hover">
+                            <table class="table table-striped table-hover table-sm">
                                 <thead>
                                     <tr>
-                                        <th>Customer</th>
-                                        <th>Contact</th>
-                                        <th>Orders</th>
-                                        <th>Occasions</th>
-                                        <th>Last Order</th>
-                                        <th>Preferences</th>
-                                        <th>Actions</th>
+                                        <th style="min-width: 160px;">Customer</th>
+                                        <th style="min-width: 140px;">Contact</th>
+                                        <th style="width: 70px;">Orders</th>
+                                        <th style="width: 80px;">Occasions</th>
+                                        <th style="width: 100px;">Last Order</th>
+                                        <th style="max-width: 120px;">Preferences</th>
+                                        <th style="width: 80px;">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -142,7 +142,7 @@
                                     <tr>
                                         <td>
                                             <div>
-                                                <strong>{{ $customer->buyer_name }}</strong>
+                                                <strong style="font-size: 0.9em;">{{ Str::limit($customer->buyer_name, 20) }}</strong>
                                                 @if($customer->orders_count >= 5)
                                                     <i class="fas fa-crown text-warning ms-1" title="High Value Customer"></i>
                                                 @endif
@@ -150,57 +150,57 @@
                                                     <i class="fas fa-envelope text-success ms-1" title="Marketing Opt-in"></i>
                                                 @endif
                                             </div>
-                                            <small class="text-muted">ID: {{ $customer->customer_id }}</small>
+                                            <small class="text-muted" style="font-size: 0.75em;" title="{{ $customer->customer_id }}">ID: {{ Str::limit($customer->customer_id, 15) }}</small>
                                         </td>
                                         <td>
-                                            <div>{{ $customer->primary_email }}</div>
+                                            <div style="font-size: 0.85em;" title="{{ $customer->primary_email }}">{{ Str::limit($customer->primary_email, 25) }}</div>
                                             @if($customer->primary_phone)
-                                                <small class="text-muted">{{ $customer->primary_phone }}</small>
+                                                <small class="text-muted" style="font-size: 0.75em;">{{ $customer->primary_phone }}</small>
                                             @endif
                                         </td>
-                                        <td>
+                                        <td class="text-center">
                                             <span class="badge badge-primary badge-pill">{{ $customer->orders_count }}</span>
                                             @if($customer->first_order)
-                                                <br><small class="text-muted">Since {{ $customer->first_order->format('M Y') }}</small>
+                                                <br><small class="text-muted" style="font-size: 0.7em;">{{ $customer->first_order->format('M Y') }}</small>
                                             @endif
                                         </td>
-                                        <td>
+                                        <td class="text-center">
                                             <span class="badge badge-info badge-pill">{{ $customer->occasions->count() }}</span>
                                             @if($customer->occasions->count() > 0)
                                                 <br>
                                                 @foreach($customer->occasions->take(2) as $occasion)
-                                                    <small class="badge badge-light">{{ ucfirst($occasion->occasion_type) }}</small>
+                                                    <small class="badge badge-light" style="font-size: 0.7em;">{{ Str::limit(ucfirst($occasion->occasion_type), 8) }}</small>
                                                 @endforeach
                                                 @if($customer->occasions->count() > 2)
-                                                    <small class="text-muted">+{{ $customer->occasions->count() - 2 }}</small>
+                                                    <small class="text-muted" style="font-size: 0.7em;">+{{ $customer->occasions->count() - 2 }}</small>
                                                 @endif
                                             @endif
                                         </td>
                                         <td>
                                             @if($customer->last_order)
-                                                <div>{{ $customer->last_order->format('M d, Y') }}</div>
-                                                <small class="text-muted">{{ $customer->last_order->diffForHumans() }}</small>
+                                                <div style="font-size: 0.85em;">{{ $customer->last_order->format('M d, Y') }}</div>
+                                                <small class="text-muted" style="font-size: 0.7em;">{{ $customer->last_order->diffForHumans() }}</small>
                                             @else
-                                                <span class="text-muted">No orders</span>
+                                                <span class="text-muted" style="font-size: 0.85em;">No orders</span>
                                             @endif
                                         </td>
-                                        <td>
+                                        <td style="max-width: 120px;">
                                             @if($customer->allergens)
-                                                <span class="badge badge-warning">Allergies</span>
+                                                <span class="badge badge-warning" style="font-size: 0.7em;">Allergies</span>
                                             @endif
                                             @if($customer->eggs_ok === 'No')
-                                                <span class="badge badge-danger">No Eggs</span>
+                                                <span class="badge badge-danger" style="font-size: 0.7em;">No Eggs</span>
                                             @endif
                                             @if($customer->fav_flavors)
-                                                <br><small class="text-muted" title="{{ $customer->fav_flavors }}">
-                                                    {{ Str::limit($customer->fav_flavors, 30) }}
+                                                <br><small class="text-muted" style="font-size: 0.7em;" title="{{ $customer->fav_flavors }}">
+                                                    {{ Str::limit($customer->fav_flavors, 15) }}
                                                 </small>
                                             @endif
                                         </td>
-                                        <td>
+                                        <td class="text-center">
                                             <a href="{{ route('admin.crm.customers.show', $customer) }}" 
-                                               class="btn btn-sm btn-outline-info">
-                                                <i class="fas fa-eye"></i> View
+                                               class="btn btn-xs btn-outline-info" title="View Customer">
+                                                <i class="fas fa-eye"></i>
                                             </a>
                                         </td>
                                     </tr>
