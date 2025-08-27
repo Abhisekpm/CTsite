@@ -22,5 +22,11 @@ class DatabaseSeeder extends Seeder
             'email' => 'user@example.com',
             // Password will typically be 'password' if using standard factory
         ]);
+
+        // CRM Data Seeders
+        $this->call([
+            CrmCustomersSeeder::class,
+            CrmOccasionsSeeder::class,
+        ]);
     }
 }
