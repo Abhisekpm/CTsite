@@ -13,6 +13,7 @@ use App\Jobs\SendPricingNotificationSMS; // Import pricing SMS job
 use App\Jobs\SendPickupReminderSMS; // Import pickup reminder SMS job
 use Exception; // Import base Exception
 use Illuminate\Validation\Rule; // Import Rule for validation
+use App\Services\CrmOrderIntegrationService; // Import CRM integration service
 
 class OrderController extends Controller
 {
@@ -193,6 +194,10 @@ class OrderController extends Controller
         try {
             $order->status = 'confirmed';
             $order->save();
+            
+            // NEW: Integrate with CRM
+            app(CrmOrderIntegrationService::class)->processConfirmedOrder($order);
+            
             // Optionally: Trigger any admin/customer notifications for manual confirmation?
             return redirect()->route('admin.orders.show', $order)->with('success', 'Order manually marked as confirmed.');
         } catch (Exception $e) {

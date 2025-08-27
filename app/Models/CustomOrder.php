@@ -41,6 +41,19 @@ class CustomOrder extends Model
     protected $table = 'custom_orders'; // Explicitly defining, though Laravel convention would likely find it
 
     /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'pickup_date' => 'date',
+        'pickup_time' => 'datetime:H:i:s',
+        'eggs_ok' => 'boolean',
+        'sms_consent' => 'boolean',
+        'price' => 'decimal:2',
+    ];
+
+    /**
      * Get the images for the custom order.
      */
     public function images()

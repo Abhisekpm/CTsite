@@ -102,11 +102,11 @@
                                 </tr>
                                 <tr>
                                     <th>First Order:</th>
-                                    <td>{{ $customer->first_order ? $customer->first_order->format('M d, Y') : 'No orders yet' }}</td>
+                                    <td>{{ $customer->first_order ? \Carbon\Carbon::parse($customer->first_order)->format('M d, Y') : 'No orders yet' }}</td>
                                 </tr>
                                 <tr>
                                     <th>Last Order:</th>
-                                    <td>{{ $customer->last_order ? $customer->last_order->format('M d, Y') : 'No orders yet' }}</td>
+                                    <td>{{ $customer->last_order ? \Carbon\Carbon::parse($customer->last_order)->format('M d, Y') : 'No orders yet' }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -179,12 +179,12 @@
                                         </td>
                                         <td>{{ $occasion->honoree_name ?? 'Not specified' }}</td>
                                         <td>
-                                            {{ $occasion->next_anchor_week_start->format('M d') }} - 
-                                            {{ $occasion->next_anchor_week_start->endOfWeek()->format('M d, Y') }}
+                                            {{ $occasion->next_anchor_week_start ? \Carbon\Carbon::parse($occasion->next_anchor_week_start)->format('M d') : 'TBD' }} - 
+                                            {{ $occasion->next_anchor_week_start ? \Carbon\Carbon::parse($occasion->next_anchor_week_start)->endOfWeek()->format('M d, Y') : 'TBD' }}
                                         </td>
                                         <td>
-                                            {{ $occasion->reminder_date->format('M d, Y') }}
-                                            <br><small class="text-muted">{{ $occasion->reminder_date->diffForHumans() }}</small>
+                                            {{ $occasion->reminder_date ? \Carbon\Carbon::parse($occasion->reminder_date)->format('M d, Y') : 'TBD' }}
+                                            <br><small class="text-muted">{{ $occasion->reminder_date ? \Carbon\Carbon::parse($occasion->reminder_date)->diffForHumans() : '' }}</small>
                                         </td>
                                         <td>
                                             @if($occasion->anchor_confidence === 'high')
@@ -240,13 +240,13 @@
                                         </td>
                                         <td>{{ $occasion->honoree_name ?? 'Not specified' }}</td>
                                         <td>
-                                            {{ $occasion->anchor_week_start_date->format('M d') }} - 
-                                            {{ $occasion->anchor_week_start_date->endOfWeek()->format('M d') }}
+                                            {{ $occasion->anchor_week_start_date ? \Carbon\Carbon::parse($occasion->anchor_week_start_date)->format('M d') : 'TBD' }} - 
+                                            {{ $occasion->anchor_week_start_date ? \Carbon\Carbon::parse($occasion->anchor_week_start_date)->endOfWeek()->format('M d') : 'TBD' }}
                                         </td>
                                         <td>
                                             @if($occasion->next_anchor_week_start)
-                                                {{ $occasion->next_anchor_week_start->format('M d, Y') }}
-                                                <br><small class="text-muted">{{ $occasion->next_anchor_week_start->diffForHumans() }}</small>
+                                                {{ \Carbon\Carbon::parse($occasion->next_anchor_week_start)->format('M d, Y') }}
+                                                <br><small class="text-muted">{{ \Carbon\Carbon::parse($occasion->next_anchor_week_start)->diffForHumans() }}</small>
                                             @else
                                                 <span class="text-muted">Not calculated</span>
                                             @endif
@@ -259,7 +259,7 @@
                                         </td>
                                         <td>
                                             @if($occasion->last_order_date_latest)
-                                                {{ $occasion->last_order_date_latest->format('M d, Y') }}
+                                                {{ \Carbon\Carbon::parse($occasion->last_order_date_latest)->format('M d, Y') }}
                                             @else
                                                 <span class="text-muted">None</span>
                                             @endif
@@ -307,7 +307,7 @@
                                         <td>{{ $order->created_at->format('M d, Y') }}</td>
                                         <td>{{ $order->cake_type ?? 'Custom' }}</td>
                                         <td>{{ $order->cake_size ?? 'Not specified' }}</td>
-                                        <td>{{ $order->pickup_date ? $order->pickup_date->format('M d, Y') : 'Not set' }}</td>
+                                        <td>{{ $order->pickup_date ? \Carbon\Carbon::parse($order->pickup_date)->format('M d, Y') : 'Not set' }}</td>
                                         <td>
                                             @if($order->status === 'confirmed')
                                                 <span class="badge badge-success">Confirmed</span>

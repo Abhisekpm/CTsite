@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use libphonenumber\PhoneNumberUtil;
 use libphonenumber\PhoneNumberFormat;
 use App\Jobs\SendCustomerOrderConfirmationSMS;
+use App\Services\CrmOrderIntegrationService;
 
 class SimpleTextingWebhookController extends Controller
 {
@@ -76,6 +77,9 @@ class SimpleTextingWebhookController extends Controller
                 $order->status = 'confirmed';
                 $order->save();
                 Log::info("SimpleTexting Webhook: Order #{$order->id} status updated to 'confirmed'.");
+
+                // NEW: Integrate with CRM
+                app(CrmOrderIntegrationService::class)->processConfirmedOrder($order);
 
                 // Send confirmation SMS to customer
                 SendCustomerOrderConfirmationSMS::dispatch($order);
