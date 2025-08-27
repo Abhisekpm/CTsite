@@ -8,6 +8,18 @@
                         <span>Cake Orders</span>
                     </a>
                 </li>
+                <li class="submenu {{set_active(['admin/crm', 'admin/crm/*'])}}">
+                    <a href="#" class="{{set_active(['admin/crm', 'admin/crm/*'])}}">
+                        <i class="fas fa-users"></i>
+                        <span>CRM</span>
+                        <span class="menu-arrow"></span>
+                    </a>
+                    <ul style="display: none;">
+                        <li><a href="{{ route('admin.crm.dashboard') }}" class="{{set_active(['admin/crm'])}}">CRM Dashboard</a></li>
+                        <li><a href="{{ route('admin.crm.customers') }}" class="{{set_active(['admin/crm/customers'])}}">Customers</a></li>
+                        <li><a href="{{ route('admin.crm.occasions') }}" class="{{set_active(['admin/crm/occasions'])}}">Occasions</a></li>
+                    </ul>
+                </li>
                 <li class="{{set_active(['admin'])}}">
                     <a href="{{ route('admin.home') }}">
                         <i class="fas fa-tachometer-alt"></i>

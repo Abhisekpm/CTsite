@@ -86,6 +86,15 @@ class ImportCrmData extends Command
         
         foreach ($csv as $record) {
             try {
+                // Calculate next_anticipated_order_date first
+                $lastOrderDate = !empty($record['last_order_date_latest']) ? 
+                    Carbon::parse($record['last_order_date_latest']) : null;
+                
+                $nextAnticipatedOrderDate = null;
+                if ($lastOrderDate) {
+                    $nextAnticipatedOrderDate = CrmOccasion::calculateNextAnticipatedOrderDateStatic($lastOrderDate);
+                }
+                
                 if ($convertWeekly && isset($record['anchor_month']) && isset($record['anchor_day'])) {
                     // Convert anchor_month/anchor_day to weekly grouping
                     $anchorWeekStart = $this->calculateAnchorWeekStart(
@@ -94,6 +103,11 @@ class ImportCrmData extends Command
                     );
                     $reminderDate = $this->calculateReminderDate($anchorWeekStart);
                     $nextAnchorWeekStart = $anchorWeekStart->copy()->addYear();
+                } elseif ($nextAnticipatedOrderDate) {
+                    // Use the next_anticipated_order_date to calculate anchor week
+                    $anchorWeekStart = $nextAnticipatedOrderDate->copy()->startOfWeek(Carbon::MONDAY);
+                    $reminderDate = $anchorWeekStart->copy()->subDays(8);
+                    $nextAnchorWeekStart = $anchorWeekStart;
                 } else {
                     // Use existing data if already in weekly format
                     $anchorWeekStart = Carbon::parse($record['anchor_week_start_date']);
@@ -111,8 +125,8 @@ class ImportCrmData extends Command
                         'honoree_name' => $record['honoree_name'] ?? null,
                         'anchor_window_days' => (int)($record['anchor_window_days'] ?? 7),
                         'anchor_confidence' => $record['anchor_confidence'] ?? 'high',
-                        'last_order_date_latest' => !empty($record['last_order_date_latest']) ? 
-                            Carbon::parse($record['last_order_date_latest']) : null,
+                        'last_order_date_latest' => $lastOrderDate,
+                        'next_anticipated_order_date' => $nextAnticipatedOrderDate,
                         'history_count' => (int)($record['history_count'] ?? 1),
                         'history_years' => $record['history_years'] ?? null,
                         'source_occasion_ids' => $record['source_occasion_ids'] ?? null,

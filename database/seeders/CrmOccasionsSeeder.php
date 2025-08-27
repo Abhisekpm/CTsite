@@ -37,8 +37,22 @@ class CrmOccasionsSeeder extends Seeder
         
         foreach ($csv as $record) {
             try {
-                // Convert anchor_month/anchor_day to weekly grouping
-                if (isset($record['anchor_month']) && isset($record['anchor_day'])) {
+                // Calculate next_anticipated_order_date first
+                $lastOrderDate = !empty($record['last_order_date_latest']) ? 
+                    Carbon::parse($record['last_order_date_latest']) : null;
+                
+                $nextAnticipatedOrderDate = null;
+                if ($lastOrderDate) {
+                    $nextAnticipatedOrderDate = CrmOccasion::calculateNextAnticipatedOrderDateStatic($lastOrderDate);
+                }
+                
+                // Convert anchor_month/anchor_day to weekly grouping or calculate from next_anticipated_order_date
+                if ($nextAnticipatedOrderDate) {
+                    // Use the next_anticipated_order_date to calculate anchor week
+                    $anchorWeekStart = $nextAnticipatedOrderDate->copy()->startOfWeek(Carbon::MONDAY);
+                    $reminderDate = $anchorWeekStart->copy()->subDays(8);
+                    $nextAnchorWeekStart = $anchorWeekStart;
+                } elseif (isset($record['anchor_month']) && isset($record['anchor_day'])) {
                     $anchorWeekStart = $this->calculateAnchorWeekStart(
                         (int)$record['anchor_month'], 
                         (int)$record['anchor_day']
@@ -59,8 +73,8 @@ class CrmOccasionsSeeder extends Seeder
                     'anchor_week_start_date' => $anchorWeekStart->toDateString(),
                     'anchor_window_days' => (int)($record['anchor_window_days'] ?? 7),
                     'anchor_confidence' => $record['anchor_confidence'] ?? 'high',
-                    'last_order_date_latest' => !empty($record['last_order_date_latest']) ? 
-                        Carbon::parse($record['last_order_date_latest']) : null,
+                    'last_order_date_latest' => $lastOrderDate,
+                    'next_anticipated_order_date' => $nextAnticipatedOrderDate,
                     'history_count' => (int)($record['history_count'] ?? 1),
                     'history_years' => $record['history_years'] ?? null,
                     'source_occasion_ids' => $record['source_occasion_ids'] ?? null,
@@ -83,7 +97,7 @@ class CrmOccasionsSeeder extends Seeder
                         ['customer_id', 'occasion_type', 'anchor_week_start_date'], 
                         [
                             'honoree_name', 'anchor_window_days', 'anchor_confidence',
-                            'last_order_date_latest', 'history_count', 'history_years',
+                            'last_order_date_latest', 'next_anticipated_order_date', 'history_count', 'history_years',
                             'source_occasion_ids', 'next_anchor_week_start', 'reminder_date'
                         ]
                     );
@@ -101,7 +115,7 @@ class CrmOccasionsSeeder extends Seeder
                 ['customer_id', 'occasion_type', 'anchor_week_start_date'], 
                 [
                     'honoree_name', 'anchor_window_days', 'anchor_confidence',
-                    'last_order_date_latest', 'history_count', 'history_years',
+                    'last_order_date_latest', 'next_anticipated_order_date', 'history_count', 'history_years',
                     'source_occasion_ids', 'next_anchor_week_start', 'reminder_date'
                 ]
             );

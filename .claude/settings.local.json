@@ -4,7 +4,9 @@
       "Bash(php -l:*)",
       "Bash(php artisan:*)",
       "Bash(grep:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(curl:*)",
+      "Bash(git log:*)"
     ],
     "deny": []
   }

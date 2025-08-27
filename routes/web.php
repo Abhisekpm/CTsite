@@ -230,6 +230,15 @@ Route::group(['middleware' => ['auth:admin'], 'prefix' => 'admin'], function () 
         // Route for printing dispatch for a selected date
         Route::get('/print-dispatch/{date}', 'printDispatchForDate')->name('printDispatchForDate')->where('date', '[0-9]{4}-[0-9]{2}-[0-9]{2}');
     });
+
+    // CRM Admin Routes
+    Route::controller(App\Http\Controllers\Admin\CrmController::class)->prefix('crm')->name('admin.crm.')->group(function () {
+        Route::get('/', 'dashboard')->name('dashboard');
+        Route::get('/customers', 'customers')->name('customers');
+        Route::get('/customers/{customer}', 'customerShow')->name('customers.show');
+        Route::get('/occasions', 'occasions')->name('occasions');
+        Route::get('/occasions/{occasion}', 'occasionShow')->name('occasions.show');
+    });
 });
 
 Route::controller(CollectionController::class)->group(function () {
