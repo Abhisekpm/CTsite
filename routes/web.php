@@ -168,8 +168,12 @@ Route::group(['middleware' => ['auth:admin'], 'prefix' => 'admin'], function () 
         Route::post('/comment/update/{id}', 'commentUpdate')->name('comment/update');
     });
 
+    // Redirect admin home to CRM Dashboard
+    Route::get('/', function () {
+        return redirect()->route('admin.crm.dashboard');
+    })->name('admin.home');
+    
     Route::controller(HomeController::class)->group(function () {
-        Route::get('/', 'index')->name('admin.home');
         Route::get('user/profile/page', 'userProfile')->name('user/profile/page');
         Route::get('teacher/dashboard', 'teacherDashboardIndex')->name('teacher/dashboard');
         Route::get('student/dashboard', 'studentDashboardIndex')->name('student/dashboard');

@@ -8,22 +8,22 @@
                         <span>Cake Orders</span>
                     </a>
                 </li>
-                <li class="submenu {{set_active(['admin/crm', 'admin/crm/*'])}}">
-                    <a href="#" class="{{set_active(['admin/crm', 'admin/crm/*'])}}">
-                        <i class="fas fa-users"></i>
-                        <span>CRM</span>
-                        <span class="menu-arrow"></span>
+                <li class="{{set_active(['admin/crm'])}}">
+                    <a href="{{ route('admin.crm.dashboard') }}">
+                        <i class="fas fa-chart-line"></i>
+                        <span>CRM Dashboard</span>
                     </a>
-                    <ul style="display: none;">
-                        <li><a href="{{ route('admin.crm.dashboard') }}" class="{{set_active(['admin/crm'])}}">CRM Dashboard</a></li>
-                        <li><a href="{{ route('admin.crm.customers') }}" class="{{set_active(['admin/crm/customers'])}}">Customers</a></li>
-                        <li><a href="{{ route('admin.crm.occasions') }}" class="{{set_active(['admin/crm/occasions'])}}">Occasions</a></li>
-                    </ul>
                 </li>
-                <li class="{{set_active(['admin'])}}">
-                    <a href="{{ route('admin.home') }}">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span>Dashboard</span>
+                <li class="{{set_active(['admin/crm/customers', 'admin/crm/customers/*'])}}">
+                    <a href="{{ route('admin.crm.customers') }}">
+                        <i class="fas fa-users"></i>
+                        <span>Customers</span>
+                    </a>
+                </li>
+                <li class="{{set_active(['admin/crm/occasions', 'admin/crm/occasions/*'])}}">
+                    <a href="{{ route('admin.crm.occasions') }}">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Occasions</span>
                     </a>
                 </li>
                 {{-- <li class="{{set_active(['admin/blogs', 'admin/blogs/create'])}}">
