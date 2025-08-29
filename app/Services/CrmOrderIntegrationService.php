@@ -142,10 +142,8 @@ class CrmOrderIntegrationService
         
         $orderDate = Carbon::parse($order->pickup_date);
         
-        // Look for existing occasion of the same type
-        $existingOccasion = $customer->occasions()
-            ->where('occasion_type', $occasionType)
-            ->first();
+        // Look for existing occasion using date proximity matching (±7 days)
+        $existingOccasion = $this->findMatchingOccasion($customer, $occasionType, $orderDate);
         
         if ($existingOccasion) {
             Log::info("CRM Integration: Updating existing {$occasionType} occasion for customer {$customer->customer_id}");
@@ -193,6 +191,122 @@ class CrmOrderIntegrationService
     }
 
     /**
+     * Find matching occasion using date proximity (±7 days)
+     *
+     * @param CrmCustomer $customer
+     * @param string $occasionType
+     * @param Carbon $orderDate
+     * @return CrmOccasion|null
+     */
+    private function findMatchingOccasion(CrmCustomer $customer, string $occasionType, Carbon $orderDate): ?CrmOccasion
+    {
+        $occasions = $customer->occasions()->where('occasion_type', $occasionType)->get();
+        
+        foreach ($occasions as $occasion) {
+            if ($this->isWithinDateWindow($occasion, $orderDate)) {
+                Log::info("CRM Integration: Found matching occasion within date window", [
+                    'occasion_id' => $occasion->id,
+                    'last_order_date' => $occasion->last_order_date_latest,
+                    'new_order_date' => $orderDate->toDateString()
+                ]);
+                return $occasion;
+            }
+        }
+        
+        Log::info("CRM Integration: No matching occasion found within ±7 day window", [
+            'customer_id' => $customer->customer_id,
+            'occasion_type' => $occasionType,
+            'order_date' => $orderDate->toDateString()
+        ]);
+        
+        return null;
+    }
+
+    /**
+     * Check if order date is within ±7 days of expected occasion date
+     *
+     * @param CrmOccasion $occasion
+     * @param Carbon $orderDate
+     * @return bool
+     */
+    private function isWithinDateWindow(CrmOccasion $occasion, Carbon $orderDate): bool
+    {
+        if (!$occasion->last_order_date_latest) {
+            return false;
+        }
+        
+        $lastOrderDate = Carbon::parse($occasion->last_order_date_latest);
+        
+        // Calculate expected date for this year (same month/day as last order)
+        $expectedDate = Carbon::create(
+            $orderDate->year, 
+            $lastOrderDate->month, 
+            $lastOrderDate->day
+        );
+        
+        // If expected date is more than 6 months away, try previous or next year
+        if ($orderDate->diffInMonths($expectedDate) > 6) {
+            if ($orderDate->lt($expectedDate)) {
+                // Order date is much earlier - try previous year
+                $expectedDate = Carbon::create(
+                    $orderDate->year - 1,
+                    $lastOrderDate->month,
+                    $lastOrderDate->day
+                );
+            } else {
+                // Order date is much later - try next year
+                $expectedDate = Carbon::create(
+                    $orderDate->year + 1,
+                    $lastOrderDate->month,
+                    $lastOrderDate->day
+                );
+            }
+        }
+        
+        // Check if within ±7 days
+        $daysDifference = abs($orderDate->diffInDays($expectedDate));
+        
+        Log::info("CRM Integration: Date window check", [
+            'occasion_id' => $occasion->id,
+            'last_order' => $lastOrderDate->toDateString(),
+            'expected_date' => $expectedDate->toDateString(),
+            'new_order' => $orderDate->toDateString(),
+            'days_difference' => $daysDifference,
+            'within_window' => $daysDifference <= 7
+        ]);
+        
+        return $daysDifference <= 7;
+    }
+
+    /**
+     * Calculate occasion confidence based on history
+     *
+     * @param int $historyCount
+     * @param string|null $historyYears
+     * @return string
+     */
+    private function calculateConfidence(int $historyCount, ?string $historyYears): string
+    {
+        if ($historyCount == 1) {
+            return 'medium'; // First occurrence
+        }
+        
+        if ($historyCount >= 3) {
+            return 'high'; // 3+ orders = established pattern
+        }
+        
+        if ($historyCount == 2 && $historyYears) {
+            // Check if orders are from different years
+            $years = explode(',', $historyYears);
+            if (count(array_unique($years)) >= 2) {
+                return 'high'; // Multiple years = strong pattern
+            }
+        }
+        
+        return 'medium';
+    }
+
+    /**
      * Update an existing occasion with new order data
      *
      * @param CrmOccasion $occasion
@@ -229,6 +343,12 @@ class CrmOrderIntegrationService
             $occasion->history_years = $orderDate->year;
         }
         
+        // Update confidence based on new history count
+        $occasion->anchor_confidence = $this->calculateConfidence(
+            $occasion->history_count, 
+            $occasion->history_years
+        );
+        
         // Recalculate dates using the NEW logic
         $occasion->next_anticipated_order_date = null; // Force recalculation
         $occasion->updateCalculatedDates();
@@ -239,6 +359,7 @@ class CrmOrderIntegrationService
             'occasion_id' => $occasion->id,
             'type' => $occasion->occasion_type,
             'history_count' => $occasion->history_count,
+            'confidence' => $occasion->anchor_confidence,
             'next_anticipated' => $occasion->next_anticipated_order_date
         ]);
     }
@@ -254,14 +375,17 @@ class CrmOrderIntegrationService
      */
     private function createNewOccasion(CrmCustomer $customer, string $occasionType, CustomOrder $order, Carbon $orderDate): void
     {
+        $historyCount = 1;
+        $historyYears = (string) $orderDate->year;
+        
         $occasion = new CrmOccasion([
             'customer_id' => $customer->customer_id,
             'occasion_type' => $occasionType,
             'honoree_name' => $this->extractHonoreeName($order),
-            'anchor_confidence' => 'medium', // First occurrence = medium confidence
+            'anchor_confidence' => $this->calculateConfidence($historyCount, $historyYears),
             'last_order_date_latest' => $orderDate,
-            'history_count' => 1,
-            'history_years' => $orderDate->year,
+            'history_count' => $historyCount,
+            'history_years' => $historyYears,
         ]);
         
         // Calculate all the dates using the model's logic
@@ -273,6 +397,7 @@ class CrmOrderIntegrationService
             'occasion_id' => $occasion->id,
             'customer_id' => $customer->customer_id,
             'type' => $occasionType,
+            'confidence' => $occasion->anchor_confidence,
             'anchor_week' => $occasion->anchor_week_start_date,
             'reminder_date' => $occasion->reminder_date
         ]);

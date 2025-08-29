@@ -163,7 +163,7 @@
                                         <th style="min-width: 150px;">Customer</th>
                                         <th style="width: 90px;">Occasion</th>
                                         <th style="width: 110px;">Anchor Week</th>
-                                        <th style="width: 120px;">Next Anticipated</th>
+                                        <th style="width: 120px;">Next Occurence</th>
                                         <th style="width: 100px;">Reminder</th>
                                         <th style="width: 80px;">Last Ordered</th>
                                         <th style="width: 70px;">History</th>
