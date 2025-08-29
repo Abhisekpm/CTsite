@@ -244,9 +244,9 @@
                                             {{ $occasion->anchor_week_start_date ? \Carbon\Carbon::parse($occasion->anchor_week_start_date)->endOfWeek()->format('M d') : 'TBD' }}
                                         </td>
                                         <td>
-                                            @if($occasion->next_anchor_week_start)
-                                                {{ \Carbon\Carbon::parse($occasion->next_anchor_week_start)->format('M d, Y') }}
-                                                <br><small class="text-muted">{{ \Carbon\Carbon::parse($occasion->next_anchor_week_start)->diffForHumans() }}</small>
+                                            @if($occasion->next_anticipated_order_date)
+                                                {{ \Carbon\Carbon::parse($occasion->next_anticipated_order_date)->format('M d, Y') }}
+                                                <br><small class="text-muted">{{ \Carbon\Carbon::parse($occasion->next_anticipated_order_date)->diffForHumans() }}</small>
                                             @else
                                                 <span class="text-muted">Not calculated</span>
                                             @endif
@@ -279,13 +279,16 @@
         </div>
         @endif
 
-        {{-- Order History --}}
-        @if($customer->customOrders->count() > 0)
+        {{-- Confirmed Order History --}}
+        @php
+            $confirmedOrders = $customer->customOrders->where('status', 'confirmed');
+        @endphp
+        @if($confirmedOrders->count() > 0)
         <div class="row mt-4">
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="card-title">Recent Order History</h5>
+                        <h5 class="card-title">Confirmed Order History</h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -293,35 +296,28 @@
                                 <thead>
                                     <tr>
                                         <th>Order Date</th>
+                                        <th>Pickup Date</th>
                                         <th>Cake Type</th>
                                         <th>Size</th>
-                                        <th>Pickup Date</th>
-                                        <th>Status</th>
                                         <th>Price</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($customer->customOrders->take(10) as $order)
+                                    @foreach($confirmedOrders->sortByDesc('pickup_date')->take(10) as $order)
                                     <tr>
                                         <td>{{ $order->created_at->format('M d, Y') }}</td>
-                                        <td>{{ $order->cake_type ?? 'Custom' }}</td>
-                                        <td>{{ $order->cake_size ?? 'Not specified' }}</td>
-                                        <td>{{ $order->pickup_date ? \Carbon\Carbon::parse($order->pickup_date)->format('M d, Y') : 'Not set' }}</td>
                                         <td>
-                                            @if($order->status === 'confirmed')
-                                                <span class="badge badge-success">Confirmed</span>
-                                            @elseif($order->status === 'priced')
-                                                <span class="badge badge-info">Priced</span>
-                                            @elseif($order->status === 'pending')
-                                                <span class="badge badge-warning">Pending</span>
-                                            @else
-                                                <span class="badge badge-secondary">{{ ucfirst($order->status ?? 'unknown') }}</span>
+                                            {{ $order->pickup_date ? \Carbon\Carbon::parse($order->pickup_date)->format('M d, Y') : 'Not set' }}
+                                            @if($order->pickup_date)
+                                                <br><small class="text-muted">{{ \Carbon\Carbon::parse($order->pickup_date)->format('D') }}</small>
                                             @endif
                                         </td>
+                                        <td>{{ $order->cake_type ?? 'Custom' }}</td>
+                                        <td>{{ $order->cake_size ?? 'Not specified' }}</td>
                                         <td>
                                             @if($order->price)
-                                                ${{ number_format($order->price, 2) }}
+                                                <span class="badge badge-success">${{ number_format($order->price, 2) }}</span>
                                             @else
                                                 <span class="text-muted">Not priced</span>
                                             @endif
@@ -335,9 +331,9 @@
                                 </tbody>
                             </table>
                         </div>
-                        @if($customer->customOrders->count() > 10)
+                        @if($confirmedOrders->count() > 10)
                         <div class="text-center mt-3">
-                            <small class="text-muted">Showing latest 10 orders of {{ $customer->customOrders->count() }} total</small>
+                            <small class="text-muted">Showing latest 10 confirmed orders of {{ $confirmedOrders->count() }} total</small>
                         </div>
                         @endif
                     </div>
