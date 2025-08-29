@@ -417,18 +417,24 @@ class OccasionExtractor:
             for occasion in occasions:
                 last_order_date = occasion['last_order_date_latest']
                 
-                # Calculate anchor week (start of week containing the order)
-                days_since_monday = last_order_date.weekday()
-                anchor_week_start = last_order_date - timedelta(days=days_since_monday)
-                occasion['anchor_week_start_date'] = anchor_week_start
-                
-                # Calculate next anticipated order date
+                # Calculate next anticipated order date first
                 next_date = self.calculate_next_anticipated_order_date(
                     last_order_date, 
                     occasion['history_count'],
                     occasion['occasion_type']
                 )
                 occasion['next_anticipated_order_date'] = next_date
+                
+                # Calculate anchor week based on FUTURE next anticipated date (not past date)
+                if next_date:
+                    days_since_monday = next_date.weekday()
+                    anchor_week_start = next_date - timedelta(days=days_since_monday)
+                    occasion['anchor_week_start_date'] = anchor_week_start
+                else:
+                    # Fallback to past date if next_date calculation failed
+                    days_since_monday = last_order_date.weekday()
+                    anchor_week_start = last_order_date - timedelta(days=days_since_monday)
+                    occasion['anchor_week_start_date'] = anchor_week_start
                 
                 # Calculate reminder date (Sunday 8 days before anchor week)
                 if next_date:
